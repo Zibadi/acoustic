@@ -5,11 +5,11 @@ import (
 	"math"
 	"os"
 
-	"github.com/ebitengine/oto/v3"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/mattn/go-tty"
 )
 
-func listen(p *oto.Player, quitTicker chan struct{}) int {
+func listen(p *audio.Player) int {
 	tty, err := tty.Open()
 	if err != nil {
 		log.Println("could not open the tty, therefore cannot listen to the key events.", err)
@@ -42,11 +42,9 @@ func listen(p *oto.Player, quitTicker chan struct{}) int {
 				}
 			case "n":
 				p.Close()
-				close(quitTicker)
 				return 1
 			case "p":
 				p.Close()
-				close(quitTicker)
 				return -1
 			case "A":
 				volume = math.Min(1, volume+0.2)
@@ -56,7 +54,6 @@ func listen(p *oto.Player, quitTicker chan struct{}) int {
 				p.SetVolume(volume)
 			case "q":
 				p.Close()
-				close(quitTicker)
 				os.Exit(0)
 			}
 		default:

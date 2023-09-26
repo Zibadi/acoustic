@@ -1,9 +1,6 @@
 package main
 
 import (
-	_ "image/gif"  // initialize decoder
-	_ "image/jpeg" // initialize decoder
-	_ "image/png"  // initialize decoder
 	"log"
 	"os"
 )
@@ -12,12 +9,15 @@ func main() {
 	checkArgs(os.Args)
 	dir := os.Args[1]
 	entries := openDir(dir)
-	paths := createPaths(dir, entries)
+	paths := getPaths(dir, entries)
 	paths = shuffle(paths)
 	index := 0
-	context, readyChan := newContext()
+	context := newContext()
 	for {
 		index %= len(paths)
+		if index < 0 {
+			index = len(paths) - 1
+		}
 		file, err := openFile(paths[index])
 		if err != nil {
 			log.Printf("could not open the %v. %v\n", paths[index], err)
@@ -32,18 +32,22 @@ func main() {
 			showImage(metadata, "♥")
 			showMetadata(metadata)
 		}
-		mp3, err := decode(file)
+		stream, err := decode(file)
 		if err != nil {
 			log.Printf("could not decode the %v. %v\n", paths[index], err)
 			index++
 			continue
 		}
-		waitFor(readyChan)
-		player := newPlayer(mp3, context)
-		quitTicker, err := showLength(mp3, player)
+		// waitFor(readyChan)
+		player, err := newPlayer(stream, context)
 		if err != nil {
-			log.Printf("could not get the width of terminal, therefore cannot show the song length. %v\n", err)
+			log.Printf("could not create a new player for the %v. %v\n", paths[index], err)
+			index++
+			continue
 		}
-		index += listen(player, quitTicker)
+		defer player.Close()
+		quit := showProgressBar(stream, player)
+		index += listen(player)
+		close(quit)
 	}
 }

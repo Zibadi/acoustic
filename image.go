@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
 	"math"
 	"os"
@@ -12,8 +15,8 @@ import (
 	"time"
 
 	"github.com/dhowden/tag"
-	"github.com/ebitengine/oto/v3"
-	"github.com/hajimehoshi/go-mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/mattn/go-runewidth"
 	"github.com/nfnt/resize"
 	"golang.org/x/crypto/ssh/terminal"
@@ -66,17 +69,18 @@ func showMetadata(m tag.Metadata) {
 	printCenter(m.Genre())
 }
 
-func showLength(mp3 *mp3.Decoder, p *oto.Player) (chan struct{}, error) {
-	const sampleSize = 4                             // From documentation.
-	samples := mp3.Length() / sampleSize             // Number of samples.
-	length := int(samples / int64(mp3.SampleRate())) // Audio length in seconds.
+func showProgressBar(s *mp3.Stream, p *audio.Player) chan struct{} {
+	const sampleRate = 44100
+	const sampleSize = 4                  // From documentation.
+	samples := s.Length() / sampleSize    // Number of samples.
+	length := int(samples / int64(44100)) // Audio length in seconds.
 	printCenter(fmt.Sprintf("%d:%02d", length/60, length%60))
 	width, _, err := terminal.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
-		return nil, err
+		log.Printf("could not get the width of terminal, therefore cannot show the song length. %v\n", err)
 	}
 	duration := length * 1000 / width
-	quitTicker := make(chan struct{})
+	quit := make(chan struct{})
 	go func() {
 		ticker := time.NewTicker(time.Duration(duration) * time.Millisecond)
 		counter := 0
@@ -84,20 +88,19 @@ func showLength(mp3 *mp3.Decoder, p *oto.Player) (chan struct{}, error) {
 			select {
 			case <-ticker.C:
 				if counter == width {
-					close(quitTicker)
 					continue
 				} else if p.IsPlaying() {
 					fmt.Printf("─")
 					counter++
 				}
-			case <-quitTicker:
-				ticker.Stop()
+			case <-quit:
 				fmt.Printf("\n")
+				ticker.Stop()
 				return
 			}
 		}
 	}()
-	return quitTicker, nil
+	return quit
 }
 
 func printCenter(text string) {

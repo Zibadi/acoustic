@@ -1,36 +1,42 @@
 package main
 
 import (
-	"log"
+	"os"
 
-	"github.com/ebitengine/oto/v3"
-	"github.com/hajimehoshi/go-mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
-func newContext() (*oto.Context, chan struct{}) {
-	option := newContextOption()
-	context, readyChan, err := oto.NewContext(option)
+func newContext() *audio.Context {
+	const sampleRate = 44100
+	context := audio.NewContext(sampleRate)
+	return context
+}
+
+// func newContextOption() *oto.NewContextOptions {
+// 	options := &oto.NewContextOptions{}
+// 	options.SampleRate = 44100
+// 	options.ChannelCount = 2
+// 	options.Format = oto.FormatSignedInt16LE
+// 	return options
+// }
+
+// func waitFor(readyChan chan struct{}) {
+// 	// It might take a bit for the hardware audio devices to be ready,
+// 	// so we wait on the channel.
+// 	<-readyChan
+// }
+
+func newPlayer(s *mp3.Stream, c *audio.Context) (*audio.Player, error) {
+	// player := context.NewPlayer(mp3)
+	p, err := c.NewPlayer(s)
+	return p, err
+}
+
+func decode(f *os.File) (*mp3.Stream, error) {
+	stream, err := mp3.DecodeWithSampleRate(44100, f)
 	if err != nil {
-		log.Fatal("could not create a new context for playing the song.", err)
+		return nil, err
 	}
-	return context, readyChan
-}
-
-func newContextOption() *oto.NewContextOptions {
-	options := &oto.NewContextOptions{}
-	options.SampleRate = 44100
-	options.ChannelCount = 2
-	options.Format = oto.FormatSignedInt16LE
-	return options
-}
-
-func waitFor(readyChan chan struct{}) {
-	// It might take a bit for the hardware audio devices to be ready,
-	// so we wait on the channel.
-	<-readyChan
-}
-
-func newPlayer(mp3 *mp3.Decoder, context *oto.Context) *oto.Player {
-	player := context.NewPlayer(mp3)
-	return player
+	return stream, nil
 }

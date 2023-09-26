@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/dhowden/tag"
-	"github.com/hajimehoshi/go-mp3"
 )
 
 func openDir(dir string) []os.DirEntry {
@@ -16,7 +15,7 @@ func openDir(dir string) []os.DirEntry {
 	return entries
 }
 
-func createPaths(dir string, entries []os.DirEntry) []string {
+func getPaths(dir string, entries []os.DirEntry) []string {
 	paths := []string{}
 	for _, e := range entries {
 		// TODO: Read songs of the sub directories too
@@ -42,12 +41,4 @@ func readMetadata(file *os.File) (tag.Metadata, error) {
 		return nil, err
 	}
 	return metadata, nil
-}
-
-func decode(f *os.File) (*mp3.Decoder, error) {
-	mp3, err := mp3.NewDecoder(f)
-	if err != nil {
-		return nil, err
-	}
-	return mp3, nil
 }
