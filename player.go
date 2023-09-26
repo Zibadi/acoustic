@@ -8,20 +8,29 @@ import (
 )
 
 func newContext() (*oto.Context, chan struct{}) {
-	op := &oto.NewContextOptions{}
-	op.SampleRate = 44100
-	op.ChannelCount = 2
-	op.Format = oto.FormatSignedInt16LE
-	otoCtx, readyChan, err := oto.NewContext(op)
+	option := newContextOption()
+	context, readyChan, err := oto.NewContext(option)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("could not create a new context for playing the song.", err)
 	}
-	return otoCtx, readyChan
+	return context, readyChan
 }
 
-func newPlayer(mp3 *mp3.Decoder, context *oto.Context, readyChan chan struct{}) *oto.Player {
-	// It might take a bit for the hardware audio devices to be ready, so we wait on the channel.
+func newContextOption() *oto.NewContextOptions {
+	options := &oto.NewContextOptions{}
+	options.SampleRate = 44100
+	options.ChannelCount = 2
+	options.Format = oto.FormatSignedInt16LE
+	return options
+}
+
+func waitFor(readyChan chan struct{}) {
+	// It might take a bit for the hardware audio devices to be ready,
+	// so we wait on the channel.
 	<-readyChan
+}
+
+func newPlayer(mp3 *mp3.Decoder, context *oto.Context) *oto.Player {
 	player := context.NewPlayer(mp3)
 	return player
 }

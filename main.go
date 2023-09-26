@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
+	_ "image/gif"  // initialize decoder
+	_ "image/jpeg" // initialize decoder
+	_ "image/png"  // initialize decoder
 	"log"
 	"os"
 )
-
-func checkArgs(args []string) {
-	if len(args) < 2 {
-		log.Fatal("specify the path of the file.")
-	}
-}
 
 func main() {
 	checkArgs(os.Args)
@@ -21,12 +17,33 @@ func main() {
 	index := 0
 	context, readyChan := newContext()
 	for {
-		file := openFile(paths[index])
+		index %= len(paths)
+		file, err := openFile(paths[index])
+		if err != nil {
+			log.Printf("could not open the %v. %v\n", paths[index], err)
+			index++
+			continue
+		}
 		defer file.Close()
-		metadata := readMetadata(file)
-		fmt.Printf("[ARTIST]: %v, [SONG]: %v\n", metadata.Artist(), metadata.Title())
-		mp3 := decode(file)
-		player := newPlayer(mp3, context, readyChan)
-		index += listen(player)
+		metadata, err := readMetadata(file)
+		if err != nil {
+			log.Println("there is no any info tag for this song.", err)
+		} else {
+			showImage(metadata, "♥")
+			showMetadata(metadata)
+		}
+		mp3, err := decode(file)
+		if err != nil {
+			log.Printf("could not decode the %v. %v\n", paths[index], err)
+			index++
+			continue
+		}
+		waitFor(readyChan)
+		player := newPlayer(mp3, context)
+		quitTicker, err := showLength(mp3, player)
+		if err != nil {
+			log.Printf("could not get the width of terminal, therefore cannot show the song length. %v\n", err)
+		}
+		index += listen(player, quitTicker)
 	}
 }
