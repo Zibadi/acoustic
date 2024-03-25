@@ -22,39 +22,40 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func start(p *Player, s *Settings) {
+func run(p *Player, s *Settings) {
 	for {
-		song := p.getSong()
+		song := p.getNextSong()
 		file, _ := os.Open(song.path)
-		metadata, _ := readMetadata(file)
-		showImage(metadata, s.imageChar)
-		showMetadata(metadata)
+		metadata, _ := readSongMetadata(file)
+		printSongImage(metadata, s.imageChar)
+		printMetadata(metadata)
 		stream, _ := decode(file)
-		p.player, _ = newAudioPlayer(stream, p.context)
-		quit := showProgressBar(stream, p.player, s)
-		nextIndex := listen(p.player)
-		p.index += nextIndex
+		p.player, _ = p.context.NewPlayer(stream)
+		quit := printSongDuration(stream, p.player, s)
+		listen(p)
 		close(quit)
 	}
 }
 
-func showImage(m tag.Metadata, char string) {
-	defer func() {
-		if r := recover(); r != nil {
-			printCenter("[NO IMAGE]")
-		}
-	}()
+func printSongImage(m tag.Metadata, char string) {
+	defer checkImage()
 	data := m.Picture().Data
 	reader := bytes.NewReader(data)
 	image, _, err := image.Decode(reader)
 	if err != nil {
-		log.Println("could not decode the image.")
+		log.Println("[WARNING]: Could not decode the song image.")
 		return
 	}
-	print(image, char)
+	printImage(image, char)
 }
 
-func print(img image.Image, char string) {
+func checkImage() {
+	if r := recover(); r != nil {
+		printCenter("[NO IMAGE]")
+	}
+}
+
+func printImage(img image.Image, char string) {
 	width, height, _ := terminal.GetSize(int(os.Stdin.Fd()))
 	min := math.Min(float64(width), float64(height))
 	size := uint(min)
@@ -68,45 +69,44 @@ func print(img image.Image, char string) {
 		}
 		for x := 0; x < maxX; x++ {
 			r, g, b, _ := image.At(x, y).RGBA()
-			fmt.Printf("\033[48;2;%d;%d;%dm", r>>8, g>>8, b>>8)
+			if char == "▄" {
+				fmt.Printf("\033[48;2;%d;%d;%dm", r>>8, g>>8, b>>8)
+			} else {
+				fmt.Printf("\033[48;2;%d;%d;%d", r>>8, g>>8, b>>8)
+			}
 
 			r, g, b, _ = image.At(x, y+1).RGBA()
-			fmt.Printf("\033[38;2;%d;%d;%dm▄", r>>8, g>>8, b>>8)
+			fmt.Printf("\033[38;2;%d;%d;%dm%v", r>>8, g>>8, b>>8, char)
 		}
 		fmt.Printf("\033[0m")
 		fmt.Printf("\n")
 	}
 }
 
-func showMetadata(m tag.Metadata) {
+func printMetadata(m tag.Metadata) {
 	printCenter(m.Title())
 	printCenter(m.Artist())
 	printCenter(strconv.Itoa(m.Year()))
 	printCenter(m.Genre())
 }
 
-func showProgressBar(s *mp3.Stream, p *audio.Player, settings *Settings) chan struct{} {
-	const sampleRate = 44100
-	const sampleSize = 4                  // From documentation.
-	samples := s.Length() / sampleSize    // Number of samples.
-	length := int(samples / int64(44100)) // Audio length in seconds.
-	printCenter(fmt.Sprintf("%d:%02d", length/60, length%60))
+func printSongDuration(s *mp3.Stream, p *audio.Player, settings *Settings) chan struct{} {
+	duration := getSongDuration(s)
+	printCenter(fmt.Sprintf("%d:%02d", duration/60, duration%60))
 	width, _, err := terminal.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
-		log.Printf("could not get the width of terminal, therefore cannot show the song length. %v\n", err)
+		log.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
 	}
-	duration := length * 1000 / width
+	interval := duration * 1000 / width
 	quit := make(chan struct{})
 	go func() {
-		ticker := time.NewTicker(time.Duration(duration) * time.Millisecond)
+		ticker := time.NewTicker(time.Duration(interval) * time.Millisecond)
 		counter := 0
 		for {
 			select {
 			case <-ticker.C:
-				if counter == width {
-					continue
-				} else if p.IsPlaying() {
-					fmt.Printf("-")
+				if p.IsPlaying() {
+					fmt.Printf(settings.progressbarChar)
 					counter++
 				}
 			case <-quit:

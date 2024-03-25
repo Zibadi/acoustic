@@ -1,64 +1,63 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"math"
 	"os"
 
-	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/mattn/go-tty"
 )
 
-func listen(p *audio.Player) int {
+func listen(p *Player) {
 	tty, err := tty.Open()
 	if err != nil {
-		log.Println("could not open the tty, therefore cannot listen to the key events.", err)
+		fmt.Println("[WARNING]: Could not open the tty, therefore cannot listen to the key events.", err)
 	}
 	defer tty.Close()
-	p.Play()
-	isPaused := false
-	volume := 1.0
+	p.player.Play()
 	key := make(chan rune)
 	go func() {
-		for p.IsPlaying() || isPaused {
+		for p.player.IsPlaying() || p.isPaused {
 			r, err := tty.ReadRune()
 			if err != nil {
-				log.Println("could not read the key.", err)
+				fmt.Println("[WARNING]: Could not read the keyboard event.", err)
 			}
 			key <- r
 		}
 	}()
-	for p.IsPlaying() || isPaused {
+	for p.player.IsPlaying() || p.isPaused {
 		select {
 		case r := <-key:
 			switch string(r) {
 			case " ":
-				if !isPaused {
-					p.Pause()
-					isPaused = true
+				if !p.isPaused {
+					p.player.Pause()
+					p.isPaused = true
 				} else {
-					p.Play()
-					isPaused = false
+					p.player.Play()
+					p.isPaused = false
 				}
 			case "n":
-				p.Close()
-				return 1
+				p.player.Close()
+				p.index++
+				return
 			case "p":
-				p.Close()
-				return -1
+				p.player.Close()
+				p.index--
+				return
 			case "A":
-				volume = math.Min(1, volume+0.2)
-				p.SetVolume(volume)
+				p.volume = math.Min(1, p.volume+0.2)
+				p.player.SetVolume(p.volume)
 			case "B":
-				volume = math.Max(0, volume-0.2)
-				p.SetVolume(volume)
+				p.volume = math.Max(0, p.volume-0.2)
+				p.player.SetVolume(p.volume)
 			case "q":
-				p.Close()
+				p.player.Close()
 				os.Exit(0)
 			}
 		default:
 			continue
 		}
 	}
-	return 1
+	p.index++
 }

@@ -17,17 +17,17 @@ type Player struct {
 }
 
 func newPlayer(s *Settings) *Player {
-	p := &Player{
+	player := &Player{
 		index:    0,
 		volume:   1.0,
 		isPaused: false,
 		songs:    loadSongs(s),
 		context:  newContext(),
 	}
-	return p
+	return player
 }
 
-func (p *Player) getSong() *Song {
+func (p *Player) getNextSong() *Song {
 	p.index %= len(p.songs)
 	if p.index < 0 {
 		p.index = len(p.songs) - 1
@@ -39,11 +39,6 @@ func newContext() *audio.Context {
 	const sampleRate = 44100
 	context := audio.NewContext(sampleRate)
 	return context
-}
-
-func newAudioPlayer(s *mp3.Stream, c *audio.Context) (*audio.Player, error) {
-	p, err := c.NewPlayer(s)
-	return p, err
 }
 
 func decode(f *os.File) (*mp3.Stream, error) {

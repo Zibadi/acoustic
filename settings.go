@@ -14,7 +14,8 @@ type Settings struct {
 
 func newSettings(args []string) *Settings {
 	checkArgs(args)
-	return getSettings()
+	settings := getSettings()
+	return settings
 }
 
 func checkArgs(args []string) {
