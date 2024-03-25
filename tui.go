@@ -22,6 +22,22 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+func start(p *Player, s *Settings) {
+	for {
+		song := p.getSong()
+		file, _ := os.Open(song.path)
+		metadata, _ := readMetadata(file)
+		showImage(metadata, s.imageChar)
+		showMetadata(metadata)
+		stream, _ := decode(file)
+		p.player, _ = newAudioPlayer(stream, p.context)
+		quit := showProgressBar(stream, p.player, s)
+		nextIndex := listen(p.player)
+		p.index += nextIndex
+		close(quit)
+	}
+}
+
 func showImage(m tag.Metadata, char string) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -69,7 +85,7 @@ func showMetadata(m tag.Metadata) {
 	printCenter(m.Genre())
 }
 
-func showProgressBar(s *mp3.Stream, p *audio.Player) chan struct{} {
+func showProgressBar(s *mp3.Stream, p *audio.Player, settings *Settings) chan struct{} {
 	const sampleRate = 44100
 	const sampleSize = 4                  // From documentation.
 	samples := s.Length() / sampleSize    // Number of samples.
@@ -90,7 +106,7 @@ func showProgressBar(s *mp3.Stream, p *audio.Player) chan struct{} {
 				if counter == width {
 					continue
 				} else if p.IsPlaying() {
-					fmt.Printf("─")
+					fmt.Printf("-")
 					counter++
 				}
 			case <-quit:

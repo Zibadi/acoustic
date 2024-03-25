@@ -7,7 +7,20 @@ import (
 	"github.com/dhowden/tag"
 )
 
-func openDir(dir string) []os.DirEntry {
+type Song struct {
+	path     string
+	length   int
+	metadata *tag.Metadata
+}
+
+func loadSongs(settings *Settings) []*Song {
+	entries := readDir(settings.dir)
+	paths := getPaths(settings.dir, entries)
+	songs := createSongs(paths)
+	return songs
+}
+
+func readDir(dir string) []os.DirEntry {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatalf("could not find %v. %v", dir, err)
@@ -25,6 +38,14 @@ func getPaths(dir string, entries []os.DirEntry) []string {
 		}
 	}
 	return paths
+}
+
+func createSongs(paths []string) []*Song {
+	songs := []*Song{}
+	for _, p := range paths {
+		songs = append(songs, &Song{path: p})
+	}
+	return songs
 }
 
 func openFile(name string) (*os.File, error) {

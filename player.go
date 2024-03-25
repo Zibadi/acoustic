@@ -7,28 +7,41 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
+type Player struct {
+	index    int
+	volume   float64
+	isPaused bool
+	songs    []*Song
+	context  *audio.Context
+	player   *audio.Player
+}
+
+func newPlayer(s *Settings) *Player {
+	p := &Player{
+		index:    0,
+		volume:   1.0,
+		isPaused: false,
+		songs:    loadSongs(s),
+		context:  newContext(),
+	}
+	return p
+}
+
+func (p *Player) getSong() *Song {
+	p.index %= len(p.songs)
+	if p.index < 0 {
+		p.index = len(p.songs) - 1
+	}
+	return p.songs[p.index]
+}
+
 func newContext() *audio.Context {
 	const sampleRate = 44100
 	context := audio.NewContext(sampleRate)
 	return context
 }
 
-// func newContextOption() *oto.NewContextOptions {
-// 	options := &oto.NewContextOptions{}
-// 	options.SampleRate = 44100
-// 	options.ChannelCount = 2
-// 	options.Format = oto.FormatSignedInt16LE
-// 	return options
-// }
-
-// func waitFor(readyChan chan struct{}) {
-// 	// It might take a bit for the hardware audio devices to be ready,
-// 	// so we wait on the channel.
-// 	<-readyChan
-// }
-
-func newPlayer(s *mp3.Stream, c *audio.Context) (*audio.Player, error) {
-	// player := context.NewPlayer(mp3)
+func newAudioPlayer(s *mp3.Stream, c *audio.Context) (*audio.Player, error) {
 	p, err := c.NewPlayer(s)
 	return p, err
 }
