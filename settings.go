@@ -14,8 +14,7 @@ type Settings struct {
 
 func newSettings(args []string) *Settings {
 	checkArgs(args)
-	settings := parsFlags()
-	return settings
+	return getSettings()
 }
 
 func checkArgs(args []string) {
@@ -25,7 +24,7 @@ func checkArgs(args []string) {
 	}
 }
 
-func parsFlags() *Settings {
+func getSettings() *Settings {
 	imageChar := flag.String("imageChar", "▄", "Set the character used to display the image. (defualt: ▄)")
 	progressbarChar := flag.String("progressbarChar", "-", "Set the character used to display the progress bar. (defualt: -)")
 	flag.Parse()
