@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/dhowden/tag"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
@@ -10,7 +11,9 @@ import (
 type Player struct {
 	index    int
 	volume   float64
+	duration int
 	isPaused bool
+	metadata tag.Metadata
 	songs    []*Song
 	context  *audio.Context
 	player   *audio.Player

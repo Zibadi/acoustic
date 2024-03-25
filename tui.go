@@ -14,9 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhowden/tag"
-	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/mattn/go-runewidth"
 	"github.com/nfnt/resize"
 	"golang.org/x/crypto/ssh/terminal"
@@ -26,20 +23,21 @@ func run(p *Player, s *Settings) {
 	for {
 		song := p.getNextSong()
 		file, _ := os.Open(song.path)
-		metadata, _ := readSongMetadata(file)
-		printSongImage(metadata, s.imageChar)
-		printMetadata(metadata)
+		p.metadata, _ = readSongMetadata(file)
+		printSongImage(p, s.imageChar)
+		printMetadata(p)
 		stream, _ := decode(file)
 		p.player, _ = p.context.NewPlayer(stream)
-		quit := printSongDuration(stream, p.player, s)
+		p.duration = getSongDuration(stream)
+		quit := printSongDuration(p, s)
 		listen(p)
 		close(quit)
 	}
 }
 
-func printSongImage(m tag.Metadata, char string) {
+func printSongImage(p *Player, char string) {
 	defer checkImage()
-	data := m.Picture().Data
+	data := p.metadata.Picture().Data
 	reader := bytes.NewReader(data)
 	image, _, err := image.Decode(reader)
 	if err != nil {
@@ -83,35 +81,31 @@ func printImage(img image.Image, char string) {
 	}
 }
 
-func printMetadata(m tag.Metadata) {
-	printCenter(m.Title())
-	printCenter(m.Artist())
-	printCenter(strconv.Itoa(m.Year()))
-	printCenter(m.Genre())
+func printMetadata(p *Player) {
+	printCenter(p.metadata.Title())
+	printCenter(p.metadata.Artist())
+	printCenter(strconv.Itoa(p.metadata.Year()))
+	printCenter(p.metadata.Genre())
+	printCenter(fmt.Sprintf("%d:%02d", p.duration/60, p.duration%60))
 }
 
-func printSongDuration(s *mp3.Stream, p *audio.Player, settings *Settings) chan struct{} {
-	duration := getSongDuration(s)
-	printCenter(fmt.Sprintf("%d:%02d", duration/60, duration%60))
+func printSongDuration(p *Player, s *Settings) chan struct{} {
 	width, _, err := terminal.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
 		log.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
 	}
-	interval := duration * 1000 / width
+	interval := p.duration * 1000 / width
 	quit := make(chan struct{})
 	go func() {
 		ticker := time.NewTicker(time.Duration(interval) * time.Millisecond)
-		counter := 0
 		for {
 			select {
 			case <-ticker.C:
-				if p.IsPlaying() {
-					fmt.Printf(settings.progressbarChar)
-					counter++
+				if p.player.IsPlaying() {
+					fmt.Print(s.progressbarChar)
 				}
 			case <-quit:
-				fmt.Printf("\n")
-				ticker.Stop()
+				fmt.Print("\n")
 				return
 			}
 		}

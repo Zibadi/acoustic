@@ -9,22 +9,12 @@ import (
 )
 
 func listen(p *Player) {
-	tty, err := tty.Open()
-	if err != nil {
-		fmt.Println("[WARNING]: Could not open the tty, therefore cannot listen to the key events.", err)
-	}
-	defer tty.Close()
 	p.player.Play()
+	defer p.player.Close()
 	key := make(chan rune)
-	go func() {
-		for p.player.IsPlaying() || p.isPaused {
-			r, err := tty.ReadRune()
-			if err != nil {
-				fmt.Println("[WARNING]: Could not read the keyboard event.", err)
-			}
-			key <- r
-		}
-	}()
+	defer close(key)
+	go readKey(p, key)
+
 	for p.player.IsPlaying() || p.isPaused {
 		select {
 		case r := <-key:
@@ -32,17 +22,14 @@ func listen(p *Player) {
 			case " ":
 				if !p.isPaused {
 					p.player.Pause()
-					p.isPaused = true
 				} else {
 					p.player.Play()
-					p.isPaused = false
 				}
+				p.isPaused = !p.isPaused
 			case "n":
-				p.player.Close()
 				p.index++
 				return
 			case "p":
-				p.player.Close()
 				p.index--
 				return
 			case "A":
@@ -52,7 +39,6 @@ func listen(p *Player) {
 				p.volume = math.Max(0, p.volume-0.2)
 				p.player.SetVolume(p.volume)
 			case "q":
-				p.player.Close()
 				os.Exit(0)
 			}
 		default:
@@ -60,4 +46,19 @@ func listen(p *Player) {
 		}
 	}
 	p.index++
+}
+
+func readKey(p *Player, key chan<- rune) {
+	tty, err := tty.Open()
+	if err != nil {
+		fmt.Println("[WARNING]: Could not open the tty, therefore cannot listen to the key events.", err)
+	}
+	defer tty.Close()
+	for p.player.IsPlaying() || p.isPaused {
+		r, err := tty.ReadRune()
+		if err != nil {
+			fmt.Println("[WARNING]: Could not read the keyboard event.", err)
+		}
+		key <- r
+	}
 }
