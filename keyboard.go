@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 
 	"github.com/mattn/go-tty"
 )
@@ -38,6 +39,10 @@ func listen(p *Player) {
 			case "B":
 				p.volume = math.Max(0, p.volume-0.2)
 				p.player.SetVolume(p.volume)
+			case "C":
+				p.player.SetPosition(p.player.Position() + (time.Second * 5))
+			case "D":
+				p.player.SetPosition(p.player.Position() - (time.Second * 5))
 			case "q":
 				os.Exit(0)
 			}
