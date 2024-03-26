@@ -33,7 +33,7 @@ func listen(p *Player) {
 				p.index--
 				return
 			case "A":
-				p.volume = math.Min(1, p.volume+0.2)
+				p.volume = math.Min(2, p.volume+0.2)
 				p.player.SetVolume(p.volume)
 			case "B":
 				p.volume = math.Max(0, p.volume-0.2)

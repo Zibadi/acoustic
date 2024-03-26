@@ -22,7 +22,7 @@ import (
 func run(p *Player, s *Settings) {
 	for {
 		song := p.getNextSong()
-		file, _ := os.Open(song.path)
+		file, _ := openFile(song.path)
 		p.metadata, _ = readSongMetadata(file)
 		printSongImage(p, s.imageChar)
 		printMetadata(p)
