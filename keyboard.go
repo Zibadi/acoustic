@@ -7,11 +7,9 @@ import (
 	"github.com/mattn/go-tty"
 )
 
-func listen(p *Player) {
+func listen(p *Player, key <-chan rune) {
 	p.player.Play()
 	defer p.player.Close()
-	key := make(chan rune)
-	go readKey(p, key)
 
 	for p.player.IsPlaying() || p.isPaused {
 		select {
@@ -42,15 +40,16 @@ func listen(p *Player) {
 			continue
 		}
 	}
+	p.nextSong()
 }
 
-func readKey(p *Player, key chan<- rune) {
+func readKey(key chan<- rune) {
 	tty, err := tty.Open()
 	if err != nil {
 		fmt.Println("[WARNING]: Could not open the tty, therefore cannot listen to the key events.", err)
 	}
 	defer tty.Close()
-	for p.player.IsPlaying() || p.isPaused {
+	for {
 		r, err := tty.ReadRune()
 		if err != nil {
 			fmt.Println("[WARNING]: Could not read the keyboard event.", err)

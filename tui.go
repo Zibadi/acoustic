@@ -20,15 +20,17 @@ import (
 )
 
 func run(p *Player, s *Settings) {
+	key := make(chan rune)
+	go readKey(key)
 	for len(p.songs) > 0 {
-		err := play(p, s)
+		err := play(p, s, key)
 		if err != nil {
 			skipSong(p)
 		}
 	}
 }
 
-func play(p *Player, s *Settings) error {
+func play(p *Player, s *Settings, key <-chan rune) error {
 	song, err := preparePlayer(p)
 	if err != nil {
 		return err
@@ -37,7 +39,7 @@ func play(p *Player, s *Settings) error {
 	printMetadata(p, s)
 	quit := printDuration(p, s)
 	defer close(quit)
-	listen(p)
+	listen(p, key)
 	return nil
 }
 
