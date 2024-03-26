@@ -8,9 +8,6 @@ import (
 )
 
 func listen(p *Player, key <-chan rune) {
-	p.player.Play()
-	defer p.player.Close()
-
 	for p.player.IsPlaying() || p.isPaused {
 		select {
 		case r := <-key:

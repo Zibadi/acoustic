@@ -49,6 +49,8 @@ func (p *Player) play(s *Settings, key <-chan rune) error {
 	printMetadata(p, s)
 	quit := printDuration(p, s)
 	defer close(quit)
+	p.player.Play()
+	defer p.player.Close()
 	listen(p, key)
 	return nil
 }
