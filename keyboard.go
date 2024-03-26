@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/mattn/go-tty"
 )
 
 func listen(p *Player, key <-chan rune) {
 	for p.player.IsPlaying() || p.isPaused {
+		timeout := getSongTimeout(p)
 		select {
 		case r := <-key:
 			switch string(r) {
@@ -33,8 +35,9 @@ func listen(p *Player, key <-chan rune) {
 			case "q":
 				os.Exit(0)
 			}
-		default:
-			continue
+		case <-time.After(timeout):
+			p.nextSong()
+			return
 		}
 	}
 	p.nextSong()

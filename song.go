@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/dhowden/tag"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
@@ -55,4 +56,8 @@ func getSongDuration(s *mp3.Stream) int {
 	samples := s.Length() / sampleSize
 	duration := int(samples / int64(sampleRate))
 	return duration
+}
+
+func getSongTimeout(p *Player) time.Duration {
+	return time.Duration(p.duration)*time.Second - p.player.Position()
 }
