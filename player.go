@@ -108,3 +108,7 @@ func (p *Player) seekBackward() {
 		p.player.SetPosition(0)
 	}
 }
+
+func (p *Player) shuffle() {
+	p.songs = shuffle(p.songs)
+}

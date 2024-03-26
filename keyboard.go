@@ -33,6 +33,8 @@ func listen(p *Player) {
 				p.seekForward()
 			case "D":
 				p.seekBackward()
+			case "s":
+				p.shuffle()
 			case "q":
 				os.Exit(0)
 			}

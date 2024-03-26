@@ -15,7 +15,7 @@ type Song struct {
 }
 
 func loadSongs(settings *Settings) []*Song {
-	songs := []*Song{}
+	songs := make([]*Song, 0)
 	err := filepath.WalkDir(settings.dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			fmt.Printf("[ERROR]: %v", err)
