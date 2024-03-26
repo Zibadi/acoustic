@@ -23,45 +23,11 @@ func run(p *Player, s *Settings) {
 	key := make(chan rune)
 	go readKey(key)
 	for len(p.songs) > 0 {
-		err := play(p, s, key)
+		err := p.play(s, key)
 		if err != nil {
-			skipSong(p)
+			p.skipSong()
 		}
 	}
-}
-
-func play(p *Player, s *Settings, key <-chan rune) error {
-	song, err := preparePlayer(p)
-	if err != nil {
-		return err
-	}
-	defer song.Close()
-	printMetadata(p, s)
-	quit := printDuration(p, s)
-	defer close(quit)
-	listen(p, key)
-	return nil
-}
-
-func preparePlayer(p *Player) (*os.File, error) {
-	song := p.getCurrentSong()
-	file, err := os.Open(song.path)
-	if err != nil {
-		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", song.path, err)
-		return nil, err
-	}
-	stream, err := decode(file)
-	if err != nil {
-		fmt.Printf("[ERROR]: Could not decode %v\n%v\n", song.path, err)
-		return file, err
-	}
-	p.player, err = p.context.NewPlayer(stream)
-	if err != nil {
-		fmt.Printf("[ERROR]: Could not play %v\n%v\n", song.path, err)
-		return file, err
-	}
-	p.duration = getSongDuration(stream)
-	return file, nil
 }
 
 func printMetadata(p *Player, s *Settings) {

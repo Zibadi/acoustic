@@ -1,13 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"time"
 
 	"github.com/dhowden/tag"
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
 type Player struct {
@@ -34,6 +34,46 @@ func newPlayer(s *Settings) *Player {
 	return player
 }
 
+func newContext() *audio.Context {
+	const sampleRate = 44100
+	context := audio.NewContext(sampleRate)
+	return context
+}
+
+func (p *Player) play(s *Settings, key <-chan rune) error {
+	song, err := p.preparePlayer()
+	if err != nil {
+		return err
+	}
+	defer song.Close()
+	printMetadata(p, s)
+	quit := printDuration(p, s)
+	defer close(quit)
+	listen(p, key)
+	return nil
+}
+
+func (p *Player) preparePlayer() (*os.File, error) {
+	song := p.getCurrentSong()
+	file, err := os.Open(song.path)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", song.path, err)
+		return nil, err
+	}
+	stream, err := decode(file)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not decode %v\n%v\n", song.path, err)
+		return file, err
+	}
+	p.player, err = p.context.NewPlayer(stream)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not play %v\n%v\n", song.path, err)
+		return file, err
+	}
+	p.duration = getSongDuration(stream)
+	return file, nil
+}
+
 func (p *Player) getCurrentSong() *Song {
 	p.index %= len(p.songs)
 	return p.songs[p.index]
@@ -52,21 +92,7 @@ func (p *Player) previousSong() {
 	p.isGoingForward = false
 }
 
-func newContext() *audio.Context {
-	const sampleRate = 44100
-	context := audio.NewContext(sampleRate)
-	return context
-}
-
-func decode(f *os.File) (*mp3.Stream, error) {
-	stream, err := mp3.DecodeWithSampleRate(44100, f)
-	if err != nil {
-		return nil, err
-	}
-	return stream, nil
-}
-
-func skipSong(p *Player) {
+func (p *Player) skipSong() {
 	p.songs[p.index] = p.songs[len(p.songs)-1]
 	if !p.isGoingForward {
 		p.previousSong()

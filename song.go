@@ -33,6 +33,14 @@ func loadSongs(settings *Settings) []*Song {
 	return songs
 }
 
+func decode(f *os.File) (*mp3.Stream, error) {
+	stream, err := mp3.DecodeWithSampleRate(44100, f)
+	if err != nil {
+		return nil, err
+	}
+	return stream, nil
+}
+
 func readSongMetadata(file *os.File) (tag.Metadata, error) {
 	metadata, err := tag.ReadFrom(file)
 	if err != nil {
