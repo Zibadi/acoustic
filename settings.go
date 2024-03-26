@@ -26,8 +26,8 @@ func checkArgs(args []string) {
 }
 
 func getSettings() *Settings {
-	imageChar := flag.String("imageChar", "▄", "Set the character used to display the image. (defualt: ▄)")
-	progressbarChar := flag.String("progressbarChar", "─", "Set the character used to display the progress bar. (defualt: ─)")
+	imageChar := flag.String("imageChar", "▄", "Set the character used to display the image.")
+	progressbarChar := flag.String("progressbarChar", "─", "Set the character used to display the progress bar.")
 	flag.Parse()
 	return &Settings{
 		dir:             flag.Arg(0),
