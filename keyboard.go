@@ -13,7 +13,6 @@ func listen(p *Player) {
 	p.player.Play()
 	defer p.player.Close()
 	key := make(chan rune)
-	defer close(key)
 	go readKey(p, key)
 
 	for p.player.IsPlaying() || p.isPaused {

@@ -48,14 +48,6 @@ func newSongs(paths []string) []*Song {
 	return songs
 }
 
-func openFile(name string) (*os.File, error) {
-	file, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
-}
-
 func readSongMetadata(file *os.File) (tag.Metadata, error) {
 	metadata, err := tag.ReadFrom(file)
 	if err != nil {

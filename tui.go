@@ -20,18 +20,58 @@ import (
 )
 
 func run(p *Player, s *Settings) {
-	for {
-		song := p.getNextSong()
-		file, _ := openFile(song.path)
-		p.metadata, _ = readSongMetadata(file)
+	for len(p.songs) > 0 {
+		err := play(p, s)
+		if err != nil {
+			skipSong(p)
+		}
+	}
+}
+
+func play(p *Player, s *Settings) error {
+	song, err := preparePlayer(p)
+	if err != nil {
+		return err
+	}
+	defer song.Close()
+	printMetadata(p, s)
+	quit := printDuration(p, s)
+	defer close(quit)
+	listen(p)
+	return nil
+}
+
+func preparePlayer(p *Player) (*os.File, error) {
+	song := p.getNextSong()
+	file, err := os.Open(song.path)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", song.path, err)
+		return nil, err
+	}
+	stream, err := decode(file)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not decode %v\n%v\n", song.path, err)
+		return file, err
+	}
+	p.player, err = p.context.NewPlayer(stream)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not play %v\n%v\n", song.path, err)
+		return file, err
+	}
+	p.duration = getSongDuration(stream)
+	return file, nil
+}
+
+func printMetadata(p *Player, s *Settings) {
+	file, _ := os.Open(p.getCurrentSong().path)
+	defer file.Close()
+	var err error
+	p.metadata, err = readSongMetadata(file)
+	if err != nil {
+		fmt.Printf("[WARNING]: Could not load the song meta tag of %v\n%v\n", p.getCurrentSong().path, err)
+	} else {
 		printSongImage(p, s.imageChar)
-		printMetadata(p)
-		stream, _ := decode(file)
-		p.player, _ = p.context.NewPlayer(stream)
-		p.duration = getSongDuration(stream)
-		quit := printSongDuration(p, s)
-		listen(p)
-		close(quit)
+		printSongDetails(p)
 	}
 }
 
@@ -81,7 +121,7 @@ func printImage(img image.Image, char string) {
 	}
 }
 
-func printMetadata(p *Player) {
+func printSongDetails(p *Player) {
 	printCenter(p.metadata.Title())
 	printCenter(p.metadata.Artist())
 	printCenter(strconv.Itoa(p.metadata.Year()))
@@ -89,10 +129,11 @@ func printMetadata(p *Player) {
 	printCenter(fmt.Sprintf("%d:%02d", p.duration/60, p.duration%60))
 }
 
-func printSongDuration(p *Player, s *Settings) chan struct{} {
+func printDuration(p *Player, s *Settings) chan struct{} {
 	width, _, err := terminal.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
-		log.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
+		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
+		return nil
 	}
 	interval := p.duration * 1000 / width
 	quit := make(chan struct{})

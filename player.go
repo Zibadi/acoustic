@@ -30,6 +30,10 @@ func newPlayer(s *Settings) *Player {
 	return player
 }
 
+func (p *Player) getCurrentSong() *Song {
+	return p.songs[p.index]
+}
+
 func (p *Player) getNextSong() *Song {
 	p.index %= len(p.songs)
 	if p.index < 0 {
@@ -50,4 +54,9 @@ func decode(f *os.File) (*mp3.Stream, error) {
 		return nil, err
 	}
 	return stream, nil
+}
+
+func skipSong(p *Player) {
+	p.songs[p.index] = p.songs[len(p.songs)-1]
+	p.songs = p.songs[:len(p.songs)-1]
 }
