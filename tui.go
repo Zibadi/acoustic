@@ -42,7 +42,7 @@ func play(p *Player, s *Settings) error {
 }
 
 func preparePlayer(p *Player) (*os.File, error) {
-	song := p.getNextSong()
+	song := p.getCurrentSong()
 	file, err := os.Open(song.path)
 	if err != nil {
 		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", song.path, err)

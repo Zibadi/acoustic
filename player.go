@@ -1,7 +1,9 @@
 package main
 
 import (
+	"math"
 	"os"
+	"time"
 
 	"github.com/dhowden/tag"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -9,37 +11,45 @@ import (
 )
 
 type Player struct {
-	index    int
-	volume   float64
-	duration int
-	isPaused bool
-	metadata tag.Metadata
-	songs    []*Song
-	context  *audio.Context
-	player   *audio.Player
+	index          int
+	volume         float64
+	duration       int
+	isPaused       bool
+	isGoingForward bool
+	metadata       tag.Metadata
+	songs          []*Song
+	context        *audio.Context
+	player         *audio.Player
 }
 
 func newPlayer(s *Settings) *Player {
 	player := &Player{
-		index:    0,
-		volume:   1.0,
-		isPaused: false,
-		songs:    loadSongs(s),
-		context:  newContext(),
+		index:          0,
+		volume:         1.0,
+		isPaused:       false,
+		isGoingForward: true,
+		songs:          loadSongs(s),
+		context:        newContext(),
 	}
 	return player
 }
 
 func (p *Player) getCurrentSong() *Song {
+	p.index %= len(p.songs)
 	return p.songs[p.index]
 }
 
-func (p *Player) getNextSong() *Song {
-	p.index %= len(p.songs)
+func (p *Player) nextSong() {
+	p.index++
+	p.isGoingForward = true
+}
+
+func (p *Player) previousSong() {
+	p.index--
 	if p.index < 0 {
 		p.index = len(p.songs) - 1
 	}
-	return p.songs[p.index]
+	p.isGoingForward = false
 }
 
 func newContext() *audio.Context {
@@ -58,5 +68,43 @@ func decode(f *os.File) (*mp3.Stream, error) {
 
 func skipSong(p *Player) {
 	p.songs[p.index] = p.songs[len(p.songs)-1]
+	if !p.isGoingForward {
+		p.previousSong()
+	}
 	p.songs = p.songs[:len(p.songs)-1]
+}
+
+func (p *Player) togglePuaseOrPlay() {
+	if !p.isPaused {
+		p.player.Pause()
+	} else {
+		p.player.Play()
+	}
+	p.isPaused = !p.isPaused
+}
+
+func (p *Player) increaseVolume() {
+	p.volume = math.Min(2, p.volume+0.2)
+	p.player.SetVolume(p.volume)
+}
+
+func (p *Player) decreaseVolume() {
+	p.volume = math.Max(0, p.volume-0.2)
+	p.player.SetVolume(p.volume)
+}
+
+func (p *Player) seekForward() {
+	newPosition := p.player.Position() + (time.Second * 5)
+	if int(newPosition.Seconds()) < p.duration {
+		p.player.SetPosition(newPosition)
+	}
+}
+
+func (p *Player) seekBackward() {
+	newPosition := p.player.Position() - (time.Second * 5)
+	if int(newPosition.Seconds()) > 0 {
+		p.player.SetPosition(newPosition)
+	} else {
+		p.player.SetPosition(0)
+	}
 }

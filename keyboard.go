@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
-	"time"
 
 	"github.com/mattn/go-tty"
 )
@@ -20,28 +18,21 @@ func listen(p *Player) {
 		case r := <-key:
 			switch string(r) {
 			case " ":
-				if !p.isPaused {
-					p.player.Pause()
-				} else {
-					p.player.Play()
-				}
-				p.isPaused = !p.isPaused
+				p.togglePuaseOrPlay()
 			case "n":
-				p.index++
+				p.nextSong()
 				return
 			case "p":
-				p.index--
+				p.previousSong()
 				return
 			case "A":
-				p.volume = math.Min(2, p.volume+0.2)
-				p.player.SetVolume(p.volume)
+				p.increaseVolume()
 			case "B":
-				p.volume = math.Max(0, p.volume-0.2)
-				p.player.SetVolume(p.volume)
+				p.decreaseVolume()
 			case "C":
-				p.player.SetPosition(p.player.Position() + (time.Second * 5))
+				p.seekForward()
 			case "D":
-				p.player.SetPosition(p.player.Position() - (time.Second * 5))
+				p.seekBackward()
 			case "q":
 				os.Exit(0)
 			}
@@ -49,7 +40,6 @@ func listen(p *Player) {
 			continue
 		}
 	}
-	p.index++
 }
 
 func readKey(p *Player, key chan<- rune) {
