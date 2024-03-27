@@ -68,6 +68,7 @@ func (p *Player) preparePlayer() (*os.File, error) {
 		return file, err
 	}
 	p.player, err = p.context.NewPlayer(stream)
+	p.player.SetVolume(p.volume)
 	if err != nil {
 		fmt.Printf("[ERROR]: Could not play %v\n%v\n", song.path, err)
 		return file, err
