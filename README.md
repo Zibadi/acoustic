@@ -25,6 +25,7 @@ During playing the song, you can control the player. Press these keyboard keys t
 | DownArrow   | Decrease the sound volume |
 | RightArrow  | Seek forward              |
 | LeftArrow   | Seek backward             |
+| s           | Shuffle the play list     |
 | q           | Exit the program          |
 
 # Roadmap
