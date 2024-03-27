@@ -13,6 +13,9 @@ You can change the default characters that are used to print the song image a pr
 
 ![alt text](images/Screenshot%20from%202024-03-27%2002-44-06.png)
 
+# Auto-Puase
+If you open a video or another audio file on your computer while the music is playing, the program will automatically pause the music. After the external audio gets finished, the music will continue to play. So cool, Right!!!
+
 # Playback Controls
 During playing the song, you can control the player. Press these keyboard keys to control the player:
 
@@ -34,4 +37,3 @@ During playing the song, you can control the player. Press these keyboard keys t
 - Replace deprecated packages
 - Add keyboard key settings
 - Add Cool/Cold feature
-- Add Auto-Pause functionality

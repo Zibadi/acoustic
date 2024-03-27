@@ -9,12 +9,14 @@ import (
 )
 
 func listen(p *Player, key <-chan rune) {
+	autoPuaseTicker := time.NewTicker(time.Duration(1) * time.Second)
 	for p.player.IsPlaying() || p.isPaused {
 		timeout := getSongTimeout(p)
 		select {
 		case r := <-key:
 			switch string(r) {
 			case " ":
+				autoPuaseTicker.Stop()
 				p.togglePuaseOrPlay()
 			case "n":
 				p.nextSong()
@@ -35,6 +37,8 @@ func listen(p *Player, key <-chan rune) {
 			case "q":
 				os.Exit(0)
 			}
+		case <-autoPuaseTicker.C:
+			p.autoPuase(autoPuaseTicker)
 		case <-time.After(timeout):
 			p.nextSong()
 			return

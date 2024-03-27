@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/dhowden/tag"
@@ -140,4 +142,24 @@ func (p *Player) seekBackward() {
 
 func (p *Player) shuffle() {
 	p.songs = shuffle(p.songs)
+}
+
+func (p *Player) autoPuase(t *time.Ticker) {
+	count, err := getRunningAudioCount()
+	if err != nil {
+		t.Stop()
+		return
+	}
+	if (count > 2 && !p.isPaused) || (count <= 2 && p.isPaused) {
+		p.togglePuaseOrPlay()
+	}
+}
+
+func getRunningAudioCount() (int, error) {
+	dump := exec.Command("pw-dump")
+	output, err := dump.Output()
+	if err != nil {
+		return 0, err
+	}
+	return strings.Count(string(output), "running"), nil
 }
