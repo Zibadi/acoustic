@@ -1,7 +1,7 @@
 # ACOUSTIC
 Listen, Control and See the details of your favorite songs.
 
-# How To Use
+# How To Run
 `$ go run . your_directory/`
 
 ![alt text](images/Screenshot%20from%202024-03-27%2002-37-23.png)
