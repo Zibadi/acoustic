@@ -15,15 +15,15 @@ type Song struct {
 	path string
 }
 
-func loadSongs(settings *Settings) []*Song {
-	songs := make([]*Song, 0)
+func loadSongs(settings *Settings) []Song {
+	songs := make([]Song, 0)
 	err := filepath.WalkDir(settings.dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			fmt.Printf("[ERROR]: %v", err)
 			return err
 		}
 		if !d.IsDir() {
-			songs = append(songs, &Song{path: path})
+			songs = append(songs, Song{path: path})
 		}
 		return nil
 	})

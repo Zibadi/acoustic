@@ -17,13 +17,13 @@ type Player struct {
 	isPaused       bool
 	isGoingForward bool
 	metadata       tag.Metadata
-	songs          []*Song
+	songs          []Song
 	context        *audio.Context
 	player         *audio.Player
 }
 
-func newPlayer(s *Settings) *Player {
-	player := &Player{
+func newPlayer(s *Settings) Player {
+	player := Player{
 		index:          0,
 		volume:         1.0,
 		isPaused:       false,
@@ -76,7 +76,7 @@ func (p *Player) preparePlayer() (*os.File, error) {
 	return file, nil
 }
 
-func (p *Player) getCurrentSong() *Song {
+func (p *Player) getCurrentSong() Song {
 	p.index %= len(p.songs)
 	return p.songs[p.index]
 }

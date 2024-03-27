@@ -6,6 +6,6 @@ import (
 
 func main() {
 	settings := newSettings(os.Args)
-	player := newPlayer(settings)
-	run(player, settings)
+	player := newPlayer(&settings)
+	run(&player, &settings)
 }
