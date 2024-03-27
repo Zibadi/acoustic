@@ -28,8 +28,10 @@ During playing the song, you can control the player. Press these keyboard keys t
 | q           | Exit the program          |
 
 # Roadmap
+- Fix possible memory leak
 - Fix seek bug that does not update the progress bar
 - Create terminal command
 - Replace deprecated packages
 - Add keyboard key settings
+- Add Cool/Cold feature
 - Add Auto-Pause functionality
