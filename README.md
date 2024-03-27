@@ -1,5 +1,4 @@
 # ACOUSTIC
-A blazing fast terminal music player.
 Listen, Control and See the details of your favorite songs.
 
 # How To Use
@@ -29,6 +28,7 @@ During playing the song, you can control the player. Press these keyboard keys t
 | q           | Exit the program          |
 
 # Roadmap
+- Fix seek bug that does not update the progress bar
 - Create terminal command
 - Replace deprecated packages
 - Add keyboard key settings
