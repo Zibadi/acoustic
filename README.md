@@ -7,7 +7,7 @@ Listen, Control and See the details of your favorite songs.
 ![alt text](images/Screenshot%20from%202024-03-27%2002-37-23.png)
 
 # Settings
-You can change the default characters that are used to print the song image a progress bar. Just specify imageChar and progressbarChar flags in your command:
+You can change the default characters that are used to print the song image and progress bar. Just specify imageChar and progressbarChar flags in your command:
 
 `$ go run . -imageChar='your_char' -progressbarChar='your_char' your_directory/`
 
