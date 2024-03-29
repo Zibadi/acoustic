@@ -10,7 +10,7 @@ import (
 
 func listen(p *Player) {
 	listenToKeyboard(p)
-	listenToSong(p)
+	listenToMusic(p)
 }
 
 func listenToKeyboard(p *Player) {
@@ -27,10 +27,10 @@ func listenToKeyboard(p *Player) {
 func handleRuneKeys(key *keys.Key, p *Player) {
 	switch key.String() {
 	case "n":
-		p.nextSong()
+		p.nextMusic()
 		return
 	case "p":
-		p.previousSong()
+		p.previousMusic()
 		return
 	case "s":
 		p.shuffle()
@@ -42,8 +42,8 @@ func handleRuneKeys(key *keys.Key, p *Player) {
 func handelOtherKeys(key *keys.Key, p *Player) {
 	switch key.Code {
 	case keys.Space:
-		p.autoPuaseTicker.Stop()
-		p.togglePuaseOrPlay()
+		p.autoPauseTicker.Stop()
+		p.togglePauseOrPlay()
 	case keys.Up:
 		p.increaseVolume()
 	case keys.Down:
@@ -57,16 +57,16 @@ func handelOtherKeys(key *keys.Key, p *Player) {
 	}
 }
 
-func listenToSong(p *Player) {
+func listenToMusic(p *Player) {
 	for p.player.IsPlaying() || p.isPaused {
-		timeout := getSongTimeout(p)
+		timeout := getMusicTimeout(p)
 		select {
-		case <-p.autoPuaseTicker.C:
-			p.autoPuase()
+		case <-p.autoPauseTicker.C:
+			p.autoPause()
 		case <-time.After(timeout):
-			p.nextSong()
+			p.nextMusic()
 			return
 		}
 	}
-	p.nextSong()
+	p.nextMusic()
 }

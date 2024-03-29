@@ -19,8 +19,8 @@ type Player struct {
 	isPaused        bool
 	isGoingForward  bool
 	metadata        tag.Metadata
-	autoPuaseTicker *time.Ticker
-	songs           []Song
+	autoPauseTicker *time.Ticker
+	musics          []Music
 	context         *audio.Context
 	player          *audio.Player
 }
@@ -31,8 +31,8 @@ func newPlayer(s *Settings) Player {
 		volume:          1.0,
 		isPaused:        false,
 		isGoingForward:  true,
-		autoPuaseTicker: time.NewTicker(time.Duration(1) * time.Second),
-		songs:           loadSongs(s),
+		autoPauseTicker: time.NewTicker(time.Duration(1) * time.Second),
+		musics:          loadMusics(s),
 		context:         newContext(),
 	}
 	return player
@@ -45,11 +45,11 @@ func newContext() *audio.Context {
 }
 
 func (p *Player) play(s *Settings) error {
-	song, err := p.preparePlayer()
+	music, err := p.preparePlayer()
 	if err != nil {
 		return err
 	}
-	defer song.Close()
+	defer music.Close()
 	printMetadata(p, s)
 	quit := printDuration(p, s)
 	defer close(quit)
@@ -60,54 +60,54 @@ func (p *Player) play(s *Settings) error {
 }
 
 func (p *Player) preparePlayer() (*os.File, error) {
-	song := p.getCurrentSong()
-	file, err := os.Open(song.path)
+	music := p.getCurrentMusic()
+	file, err := os.Open(music.path)
 	if err != nil {
-		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", song.path, err)
+		fmt.Printf("[ERROR]: Could not open the %v\n%v\n", music.path, err)
 		return nil, err
 	}
 	stream, err := decode(file)
 	if err != nil {
-		fmt.Printf("[ERROR]: Could not decode %v\n%v\n", song.path, err)
+		fmt.Printf("[ERROR]: Could not decode %v\n%v\n", music.path, err)
 		return file, err
 	}
 	p.player, err = p.context.NewPlayer(stream)
 	p.player.SetVolume(p.volume)
 	if err != nil {
-		fmt.Printf("[ERROR]: Could not play %v\n%v\n", song.path, err)
+		fmt.Printf("[ERROR]: Could not play %v\n%v\n", music.path, err)
 		return file, err
 	}
-	p.duration = getSongDuration(stream)
+	p.duration = getMusicDuration(stream)
 	return file, nil
 }
 
-func (p *Player) getCurrentSong() Song {
-	p.index %= len(p.songs)
-	return p.songs[p.index]
+func (p *Player) getCurrentMusic() Music {
+	p.index %= len(p.musics)
+	return p.musics[p.index]
 }
 
-func (p *Player) nextSong() {
+func (p *Player) nextMusic() {
 	p.index++
 	p.isGoingForward = true
 }
 
-func (p *Player) previousSong() {
+func (p *Player) previousMusic() {
 	p.index--
 	if p.index < 0 {
-		p.index = len(p.songs) - 1
+		p.index = len(p.musics) - 1
 	}
 	p.isGoingForward = false
 }
 
-func (p *Player) skipSong() {
-	p.songs[p.index] = p.songs[len(p.songs)-1]
+func (p *Player) skipMusic() {
+	p.musics[p.index] = p.musics[len(p.musics)-1]
 	if !p.isGoingForward {
-		p.previousSong()
+		p.previousMusic()
 	}
-	p.songs = p.songs[:len(p.songs)-1]
+	p.musics = p.musics[:len(p.musics)-1]
 }
 
-func (p *Player) togglePuaseOrPlay() {
+func (p *Player) togglePauseOrPlay() {
 	if !p.isPaused {
 		p.player.Pause()
 	} else {
@@ -143,17 +143,17 @@ func (p *Player) seekBackward() {
 }
 
 func (p *Player) shuffle() {
-	p.songs = shuffle(p.songs)
+	p.musics = shuffle(p.musics)
 }
 
-func (p *Player) autoPuase() {
+func (p *Player) autoPause() {
 	count, err := getRunningAudioCount()
 	if err != nil {
-		p.autoPuaseTicker.Stop()
+		p.autoPauseTicker.Stop()
 		return
 	}
 	if (count > 2 && !p.isPaused) || (count <= 2 && p.isPaused) {
-		p.togglePuaseOrPlay()
+		p.togglePauseOrPlay()
 	}
 }
 

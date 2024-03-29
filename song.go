@@ -11,27 +11,27 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
-type Song struct {
+type Music struct {
 	path string
 }
 
-func loadSongs(settings *Settings) []Song {
-	songs := make([]Song, 0)
+func loadMusics(settings *Settings) []Music {
+	musics := make([]Music, 0)
 	err := filepath.WalkDir(settings.dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			fmt.Printf("[ERROR]: %v", err)
 			return err
 		}
 		if !d.IsDir() {
-			songs = append(songs, Song{path: path})
+			musics = append(musics, Music{path: path})
 		}
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("[ERROR]: Could not load the songs from %v\n%v\n", settings.dir, err)
+		fmt.Printf("[ERROR]: Could not load the musics from %v\n%v\n", settings.dir, err)
 		os.Exit(0)
 	}
-	return songs
+	return musics
 }
 
 func decode(f *os.File) (*mp3.Stream, error) {
@@ -42,7 +42,7 @@ func decode(f *os.File) (*mp3.Stream, error) {
 	return stream, nil
 }
 
-func readSongMetadata(file *os.File) (tag.Metadata, error) {
+func readMusicMetadata(file *os.File) (tag.Metadata, error) {
 	metadata, err := tag.ReadFrom(file)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func readSongMetadata(file *os.File) (tag.Metadata, error) {
 	return metadata, nil
 }
 
-func getSongDuration(s *mp3.Stream) int {
+func getMusicDuration(s *mp3.Stream) int {
 	const sampleRate = 44100
 	const sampleSize = 4
 	samples := s.Length() / sampleSize
@@ -58,7 +58,7 @@ func getSongDuration(s *mp3.Stream) int {
 	return duration
 }
 
-func getSongTimeout(p *Player) time.Duration {
+func getMusicTimeout(p *Player) time.Duration {
 	if p.isPaused {
 		return time.Duration(24*365) * time.Hour
 	}

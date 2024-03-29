@@ -20,7 +20,7 @@ func newSettings(args []string) Settings {
 
 func checkArgs(args []string) {
 	if len(args) < 2 {
-		fmt.Println("[ERROR]: Please provide song directory.")
+		fmt.Println("[ERROR]: Please provide music directory.")
 		os.Exit(0)
 	}
 }

@@ -20,34 +20,34 @@ import (
 )
 
 func run(p *Player, s *Settings) {
-	for len(p.songs) > 0 {
+	for len(p.musics) > 0 {
 		err := p.play(s)
 		if err != nil {
-			p.skipSong()
+			p.skipMusic()
 		}
 	}
 }
 
 func printMetadata(p *Player, s *Settings) {
-	file, _ := os.Open(p.getCurrentSong().path)
+	file, _ := os.Open(p.getCurrentMusic().path)
 	defer file.Close()
 	var err error
-	p.metadata, err = readSongMetadata(file)
+	p.metadata, err = readMusicMetadata(file)
 	if err != nil {
-		fmt.Printf("[WARNING]: Could not load the song meta tag of %v\n%v\n", p.getCurrentSong().path, err)
+		fmt.Printf("[WARNING]: Could not load the music meta tag of %v\n%v\n", p.getCurrentMusic().path, err)
 	} else {
-		printSongImage(p, s.imageChar)
-		printSongDetails(p)
+		printMusicImage(p, s.imageChar)
+		printMusicDetails(p)
 	}
 }
 
-func printSongImage(p *Player, char string) {
+func printMusicImage(p *Player, char string) {
 	defer checkImage()
 	data := p.metadata.Picture().Data
 	reader := bytes.NewReader(data)
 	image, _, err := image.Decode(reader)
 	if err != nil {
-		log.Println("[WARNING]: Could not decode the song image.")
+		log.Println("[WARNING]: Could not decode the music image.")
 		return
 	}
 	printImage(image, char)
@@ -87,7 +87,7 @@ func printImage(img image.Image, char string) {
 	}
 }
 
-func printSongDetails(p *Player) {
+func printMusicDetails(p *Player) {
 	printCenter(p.metadata.Title())
 	printCenter(p.metadata.Artist())
 	printCenter(strconv.Itoa(p.metadata.Year()))
@@ -98,7 +98,7 @@ func printSongDetails(p *Player) {
 func printDuration(p *Player, s *Settings) chan struct{} {
 	width, _, err := getTerminalSize()
 	if err != nil {
-		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
+		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the music progress bar. %v\n", err)
 		return nil
 	}
 	interval := p.duration * 1000 / width
