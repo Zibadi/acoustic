@@ -3,6 +3,7 @@ module acoustic
 go 1.20
 
 require (
+	atomicgo.dev/cursor v0.2.0
 	atomicgo.dev/keyboard v0.2.9
 	github.com/dhowden/tag v0.0.0-20230630033851-978a0926ee25
 	github.com/hajimehoshi/ebiten/v2 v2.6.0
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	atomicgo.dev/cursor v0.2.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/ebitengine/oto/v3 v3.1.0 // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect

@@ -14,22 +14,23 @@ import (
 	"strconv"
 	"strings"
 
+	"atomicgo.dev/cursor"
 	"github.com/dhowden/tag"
 	"github.com/mattn/go-runewidth"
 	"github.com/nfnt/resize"
 )
 
-func run(p *Player, s *Settings) {
+func run(p *Player) {
 	go listenToKeyboard(p)
 	for len(p.musics) > 0 {
-		err := p.play(s)
+		err := p.play()
 		if err != nil {
 			p.skipMusic()
 		}
 	}
 }
 
-func printMetadata(p *Player, s *Settings) {
+func printMetadata(p *Player) {
 	file, _ := os.Open(p.getCurrentMusic().path)
 	defer file.Close()
 	var err error
@@ -37,7 +38,7 @@ func printMetadata(p *Player, s *Settings) {
 	if err != nil {
 		fmt.Printf("[WARNING]: Could not load the music meta tag of %v\n%v\n", p.getCurrentMusic().path, err)
 	} else {
-		printMusicImage(metadata, s.imageChar)
+		printMusicImage(metadata, p.imageChar)
 		printMusicMetadata(metadata)
 	}
 }
@@ -102,10 +103,24 @@ func printDuration(p *Player) {
 	printCenter(duratoin)
 }
 
-func printProgressbar(p *Player, s *Settings) {
+func printProgressbar(p *Player) {
 	if !p.isPaused {
-		fmt.Print(s.progressbarChar)
+		fmt.Print(p.progressbarChar)
 	}
+}
+
+func updateProgressBar(p *Player) {
+	interval := getProgressbarInterval(p)
+	cursor.Hide()
+	area := cursor.NewArea()
+	area.ClearLinesDown(0)
+	bound := p.player.Position().Milliseconds()
+	content := ""
+	for i := 0; i < int(bound/interval); i++ {
+		content += p.progressbarChar
+	}
+	area.Update(content)
+	cursor.Show()
 }
 
 func printCenter(text string) {

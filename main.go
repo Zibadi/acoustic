@@ -7,5 +7,5 @@ import (
 func main() {
 	settings := newSettings(os.Args)
 	player := newPlayer(&settings)
-	run(&player, &settings)
+	run(&player)
 }

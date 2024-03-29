@@ -15,6 +15,8 @@ type Player struct {
 	index             int
 	volume            float64
 	duration          time.Duration
+	imageChar         string
+	progressbarChar   string
 	isPaused          bool
 	isGoingForward    bool
 	isFinished        chan bool
@@ -29,6 +31,8 @@ func newPlayer(s *Settings) Player {
 	player := Player{
 		index:           0,
 		volume:          1.0,
+		imageChar:       s.imageChar,
+		progressbarChar: s.progressbarChar,
 		isPaused:        false,
 		isGoingForward:  true,
 		isFinished:      make(chan bool, 1),
@@ -46,26 +50,31 @@ func newContext() *audio.Context {
 }
 
 func newProgressbarTicker(p *Player) *time.Ticker {
-	width, _, _ := getTerminalSize()
-	interval := p.duration.Milliseconds() / int64(width)
+	interval := getProgressbarInterval(p)
 	return time.NewTicker(time.Duration(interval * int64(time.Millisecond)))
 }
 
-func (p *Player) play(s *Settings) error {
+func getProgressbarInterval(p *Player) int64 {
+	width, _, _ := getTerminalSize()
+	interval := p.duration.Milliseconds() / int64(width)
+	return interval
+}
+
+func (p *Player) play() error {
 	music, err := p.preparePlayer()
 	if err != nil {
 		return err
 	}
 	defer music.Close()
-	printMetadata(p, s)
+	printMetadata(p)
 	printDuration(p)
 	p.player.Play()
 	defer p.dispose()
-	p.listen(s)
+	p.listen()
 	return nil
 }
 
-func (p *Player) listen(s *Settings) {
+func (p *Player) listen() {
 	for {
 		timeout := getMusicTimeout(p)
 		select {
@@ -73,7 +82,7 @@ func (p *Player) listen(s *Settings) {
 			fmt.Println()
 			return
 		case <-p.progressbarTicker.C:
-			printProgressbar(p, s)
+			printProgressbar(p)
 		case <-p.autoPauseTicker.C:
 			p.autoPause()
 		case <-time.After(timeout):
@@ -161,6 +170,7 @@ func (p *Player) seekForward() {
 	newPosition := p.player.Position() + (time.Second * 5)
 	if newPosition < p.duration {
 		p.player.SetPosition(newPosition)
+		updateProgressBar(p)
 	}
 }
 
@@ -171,6 +181,7 @@ func (p *Player) seekBackward() {
 	} else {
 		p.player.SetPosition(0)
 	}
+	updateProgressBar(p)
 }
 
 func (p *Player) shuffle() {

@@ -32,7 +32,6 @@ During playing the music, you can control the player. Press these keyboard keys 
 | q           | Exit the program          |
 
 # Roadmap
-- Fix seek bug that does not update the progress bar
 - Create terminal command
 - Add keyboard key settings
 - Add Cool/Cold feature
