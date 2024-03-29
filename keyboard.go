@@ -2,16 +2,10 @@ package main
 
 import (
 	"os"
-	"time"
 
 	"atomicgo.dev/keyboard"
 	"atomicgo.dev/keyboard/keys"
 )
-
-func listen(p *Player) {
-	listenToKeyboard(p)
-	listenToMusic(p)
-}
 
 func listenToKeyboard(p *Player) {
 	keyboard.Listen(func(key keys.Key) (stop bool, err error) {
@@ -28,10 +22,8 @@ func handleRuneKeys(key *keys.Key, p *Player) {
 	switch key.String() {
 	case "n":
 		p.nextMusic()
-		return
 	case "p":
 		p.previousMusic()
-		return
 	case "s":
 		p.shuffle()
 	case "q":
@@ -55,18 +47,4 @@ func handelOtherKeys(key *keys.Key, p *Player) {
 	case keys.CtrlC:
 		os.Exit(0)
 	}
-}
-
-func listenToMusic(p *Player) {
-	for p.player.IsPlaying() || p.isPaused {
-		timeout := getMusicTimeout(p)
-		select {
-		case <-p.autoPauseTicker.C:
-			p.autoPause()
-		case <-time.After(timeout):
-			p.nextMusic()
-			return
-		}
-	}
-	p.nextMusic()
 }

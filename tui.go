@@ -20,6 +20,7 @@ import (
 )
 
 func run(p *Player, s *Settings) {
+	go listenToKeyboard(p)
 	for len(p.musics) > 0 {
 		err := p.play(s)
 		if err != nil {

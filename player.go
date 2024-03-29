@@ -18,6 +18,7 @@ type Player struct {
 	duration        int
 	isPaused        bool
 	isGoingForward  bool
+	isFinished      chan bool
 	metadata        tag.Metadata
 	autoPauseTicker *time.Ticker
 	musics          []Music
@@ -31,6 +32,7 @@ func newPlayer(s *Settings) Player {
 		volume:          1.0,
 		isPaused:        false,
 		isGoingForward:  true,
+		isFinished:      make(chan bool, 1),
 		autoPauseTicker: time.NewTicker(time.Duration(1) * time.Second),
 		musics:          loadMusics(s),
 		context:         newContext(),
@@ -55,8 +57,22 @@ func (p *Player) play(s *Settings) error {
 	defer close(quit)
 	p.player.Play()
 	defer p.player.Close()
-	listen(p)
+	p.listen()
 	return nil
+}
+
+func (p *Player) listen() {
+	for {
+		timeout := getMusicTimeout(p)
+		select {
+		case <-p.isFinished:
+			return
+		case <-p.autoPauseTicker.C:
+			p.autoPause()
+		case <-time.After(timeout):
+			p.nextMusic()
+		}
+	}
 }
 
 func (p *Player) preparePlayer() (*os.File, error) {
@@ -89,6 +105,7 @@ func (p *Player) getCurrentMusic() Music {
 func (p *Player) nextMusic() {
 	p.index++
 	p.isGoingForward = true
+	p.isFinished <- true
 }
 
 func (p *Player) previousMusic() {
@@ -97,6 +114,7 @@ func (p *Player) previousMusic() {
 		p.index = len(p.musics) - 1
 	}
 	p.isGoingForward = false
+	p.isFinished <- true
 }
 
 func (p *Player) skipMusic() {
