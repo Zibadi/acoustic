@@ -1,63 +1,72 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
-	"github.com/mattn/go-tty"
+	"atomicgo.dev/keyboard"
+	"atomicgo.dev/keyboard/keys"
 )
 
-func listen(p *Player, key <-chan rune) {
-	autoPuaseTicker := time.NewTicker(time.Duration(1) * time.Second)
+func listen(p *Player) {
+	listenToKeyboard(p)
+	listenToSong(p)
+}
+
+func listenToKeyboard(p *Player) {
+	keyboard.Listen(func(key keys.Key) (stop bool, err error) {
+		if key.Code == keys.RuneKey {
+			handleRuneKeys(&key, p)
+		} else {
+			handelOtherKeys(&key, p)
+		}
+		return false, nil // Return false to continue listening
+	})
+}
+
+func handleRuneKeys(key *keys.Key, p *Player) {
+	switch key.String() {
+	case "n":
+		p.nextSong()
+		return
+	case "p":
+		p.previousSong()
+		return
+	case "s":
+		p.shuffle()
+	case "q":
+		os.Exit(0)
+	}
+}
+
+func handelOtherKeys(key *keys.Key, p *Player) {
+	switch key.Code {
+	case keys.Space:
+		p.autoPuaseTicker.Stop()
+		p.togglePuaseOrPlay()
+	case keys.Up:
+		p.increaseVolume()
+	case keys.Down:
+		p.decreaseVolume()
+	case keys.Right:
+		p.seekForward()
+	case keys.Left:
+		p.seekBackward()
+	case keys.CtrlC:
+		os.Exit(0)
+	}
+}
+
+func listenToSong(p *Player) {
 	for p.player.IsPlaying() || p.isPaused {
 		timeout := getSongTimeout(p)
 		select {
-		case r := <-key:
-			switch string(r) {
-			case " ":
-				autoPuaseTicker.Stop()
-				p.togglePuaseOrPlay()
-			case "n":
-				p.nextSong()
-				return
-			case "p":
-				p.previousSong()
-				return
-			case "A":
-				p.increaseVolume()
-			case "B":
-				p.decreaseVolume()
-			case "C":
-				p.seekForward()
-			case "D":
-				p.seekBackward()
-			case "s":
-				p.shuffle()
-			case "q":
-				os.Exit(0)
-			}
-		case <-autoPuaseTicker.C:
-			p.autoPuase(autoPuaseTicker)
+		case <-p.autoPuaseTicker.C:
+			p.autoPuase()
 		case <-time.After(timeout):
 			p.nextSong()
 			return
 		}
 	}
 	p.nextSong()
-}
-
-func readKey(key chan<- rune) {
-	tty, err := tty.Open()
-	if err != nil {
-		fmt.Println("[WARNING]: Could not open the tty, therefore cannot listen to the key events.", err)
-	}
-	defer tty.Close()
-	for {
-		r, err := tty.ReadRune()
-		if err != nil {
-			fmt.Println("[WARNING]: Could not read the keyboard event.", err)
-		}
-		key <- r
-	}
 }

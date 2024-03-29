@@ -13,25 +13,27 @@ import (
 )
 
 type Player struct {
-	index          int
-	volume         float64
-	duration       int
-	isPaused       bool
-	isGoingForward bool
-	metadata       tag.Metadata
-	songs          []Song
-	context        *audio.Context
-	player         *audio.Player
+	index           int
+	volume          float64
+	duration        int
+	isPaused        bool
+	isGoingForward  bool
+	metadata        tag.Metadata
+	autoPuaseTicker *time.Ticker
+	songs           []Song
+	context         *audio.Context
+	player          *audio.Player
 }
 
 func newPlayer(s *Settings) Player {
 	player := Player{
-		index:          0,
-		volume:         1.0,
-		isPaused:       false,
-		isGoingForward: true,
-		songs:          loadSongs(s),
-		context:        newContext(),
+		index:           0,
+		volume:          1.0,
+		isPaused:        false,
+		isGoingForward:  true,
+		autoPuaseTicker: time.NewTicker(time.Duration(1) * time.Second),
+		songs:           loadSongs(s),
+		context:         newContext(),
 	}
 	return player
 }
@@ -42,7 +44,7 @@ func newContext() *audio.Context {
 	return context
 }
 
-func (p *Player) play(s *Settings, key <-chan rune) error {
+func (p *Player) play(s *Settings) error {
 	song, err := p.preparePlayer()
 	if err != nil {
 		return err
@@ -53,7 +55,7 @@ func (p *Player) play(s *Settings, key <-chan rune) error {
 	defer close(quit)
 	p.player.Play()
 	defer p.player.Close()
-	listen(p, key)
+	listen(p)
 	return nil
 }
 
@@ -144,10 +146,10 @@ func (p *Player) shuffle() {
 	p.songs = shuffle(p.songs)
 }
 
-func (p *Player) autoPuase(t *time.Ticker) {
+func (p *Player) autoPuase() {
 	count, err := getRunningAudioCount()
 	if err != nil {
-		t.Stop()
+		p.autoPuaseTicker.Stop()
 		return
 	}
 	if (count > 2 && !p.isPaused) || (count <= 2 && p.isPaused) {

@@ -10,20 +10,18 @@ import (
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mattn/go-runewidth"
 	"github.com/nfnt/resize"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func run(p *Player, s *Settings) {
-	key := make(chan rune)
-	go readKey(key)
 	for len(p.songs) > 0 {
-		err := p.play(s, key)
+		err := p.play(s)
 		if err != nil {
 			p.skipSong()
 		}
@@ -62,7 +60,7 @@ func checkImage() {
 }
 
 func printImage(img image.Image, char string) {
-	width, height, _ := terminal.GetSize(int(os.Stdin.Fd()))
+	width, height, _ := getTerminalSize()
 	min := math.Min(float64(width), float64(height))
 	size := uint(min)
 	image := resize.Resize(size, 0, img, resize.Lanczos3)
@@ -98,7 +96,7 @@ func printSongDetails(p *Player) {
 }
 
 func printDuration(p *Player, s *Settings) chan struct{} {
-	width, _, err := terminal.GetSize(int(os.Stdin.Fd()))
+	width, _, err := getTerminalSize()
 	if err != nil {
 		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the song progress bar. %v\n", err)
 		return nil
@@ -127,10 +125,29 @@ func printCenter(text string) {
 	if text == "" || text == "0" {
 		return
 	}
-	width, _, _ := terminal.GetSize(int(os.Stdin.Fd()))
+	width, _, _ := getTerminalSize()
 	length := runewidth.StringWidth(text)
 	for i := 0; i < (width-length)/2; i++ {
 		fmt.Printf(" ")
 	}
 	fmt.Println(text)
+}
+
+func getTerminalSize() (int, int, error) {
+	cmd := exec.Command("stty", "size")
+	cmd.Stdin = os.Stdin
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not get the terminal size.\n%v\n", err)
+		return 0, 0, err
+	}
+	trim := strings.TrimRight(string(output), "\n")
+	size := strings.Split(trim, " ")
+	height, err := strconv.Atoi(size[0])
+	width, _ := strconv.Atoi(size[1])
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not parse the terminal size.\n%v\n", err)
+		return 0, 0, err
+	}
+	return width, height, nil
 }
