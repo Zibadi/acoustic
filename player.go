@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 )
 
 type Player struct {
@@ -109,14 +110,18 @@ func (p *Player) preparePlayer() (*os.File, error) {
 		return file, err
 	}
 	p.player, err = p.context.NewPlayer(stream)
-	p.player.SetVolume(p.volume)
 	if err != nil {
 		fmt.Printf("[ERROR]: Could not play %v\n%v\n", music.path, err)
 		return file, err
 	}
-	p.duration = getMusicDuration(stream)
-	p.progressbarTicker = newProgressbarTicker(p)
+	p.setupPlayerConfigs(stream)
 	return file, nil
+}
+
+func (p *Player) setupPlayerConfigs(s *mp3.Stream) {
+	p.player.SetVolume(p.volume)
+	p.duration = getMusicDuration(s)
+	p.progressbarTicker = newProgressbarTicker(p)
 }
 
 func (p *Player) getCurrentMusic() Music {

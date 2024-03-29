@@ -7,7 +7,6 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"math"
 	"os"
 	"os/exec"
@@ -33,10 +32,9 @@ func run(p *Player) {
 func printMetadata(p *Player) {
 	file, _ := os.Open(p.getCurrentMusic().path)
 	defer file.Close()
-	var err error
 	metadata, err := readMusicMetadata(file)
 	if err != nil {
-		fmt.Printf("[WARNING]: Could not load the music meta tag of %v\n%v\n", p.getCurrentMusic().path, err)
+		fmt.Printf("[WARNING]: Could not load the music metadata of %v\n%v\n", p.getCurrentMusic().path, err)
 	} else {
 		printMusicImage(metadata, p.imageChar)
 		printMusicMetadata(metadata)
@@ -49,7 +47,7 @@ func printMusicImage(m tag.Metadata, c string) {
 	reader := bytes.NewReader(data)
 	image, _, err := image.Decode(reader)
 	if err != nil {
-		log.Println("[WARNING]: Could not decode the music image.")
+		fmt.Println("[WARNING]: Could not decode the music image.")
 		return
 	}
 	printImage(image, c)
