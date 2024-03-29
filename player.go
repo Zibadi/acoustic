@@ -60,7 +60,7 @@ func (p *Player) play(s *Settings) error {
 	printMetadata(p, s)
 	printDuration(p)
 	p.player.Play()
-	defer p.player.Close()
+	defer p.dispose()
 	p.listen(s)
 	return nil
 }
@@ -70,17 +70,21 @@ func (p *Player) listen(s *Settings) {
 		timeout := getMusicTimeout(p)
 		select {
 		case <-p.isFinished:
+			fmt.Println()
 			return
 		case <-p.progressbarTicker.C:
-			if p.player.IsPlaying() {
-				fmt.Print(s.progressbarChar)
-			}
+			printProgressbar(p, s)
 		case <-p.autoPauseTicker.C:
 			p.autoPause()
 		case <-time.After(timeout):
 			p.nextMusic()
 		}
 	}
+}
+
+func (p *Player) dispose() {
+	p.player.Close()
+	p.progressbarTicker.Stop()
 }
 
 func (p *Player) preparePlayer() (*os.File, error) {

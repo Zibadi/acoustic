@@ -102,6 +102,12 @@ func printDuration(p *Player) {
 	printCenter(duratoin)
 }
 
+func printProgressbar(p *Player, s *Settings) {
+	if !p.isPaused {
+		fmt.Print(s.progressbarChar)
+	}
+}
+
 func printCenter(text string) {
 	text = strings.TrimSpace(text)
 	if text == "" {
