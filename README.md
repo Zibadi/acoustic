@@ -21,8 +21,8 @@ During playing the music, you can control the player. Press these keyboard keys 
 
 | Key         | Action                    |
 | ----------- | ------------------------- |
-| n           | Go to next music           |
-| p           | Go to previous music       |
+| n           | Go to next music          |
+| p           | Go to previous music      |
 | space       | Pause/Play                |
 | UpArrow     | Increase the sound volume |
 | DownArrow   | Decrease the sound volume |
@@ -34,6 +34,5 @@ During playing the music, you can control the player. Press these keyboard keys 
 # Roadmap
 - Fix seek bug that does not update the progress bar
 - Create terminal command
-- Replace deprecated packages
 - Add keyboard key settings
 - Add Cool/Cold feature
