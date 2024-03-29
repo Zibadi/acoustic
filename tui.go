@@ -93,10 +93,10 @@ func printMusicDetails(p *Player) {
 	printCenter(p.metadata.Artist())
 	printCenter(strconv.Itoa(p.metadata.Year()))
 	printCenter(p.metadata.Genre())
-	printCenter(fmt.Sprintf("%d:%02d", p.duration/60, p.duration%60))
 }
 
 func printDuration(p *Player, s *Settings) chan struct{} {
+	printCenter(fmt.Sprintf("[%d:%02d]", p.duration/60, p.duration%60))
 	width, _, err := getTerminalSize()
 	if err != nil {
 		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the music progress bar. %v\n", err)
