@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	atomicgo.dev/cursor v0.2.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/ebitengine/oto/v3 v3.1.0 // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect

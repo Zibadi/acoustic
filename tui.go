@@ -13,8 +13,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/dhowden/tag"
 	"github.com/mattn/go-runewidth"
 	"github.com/nfnt/resize"
 )
@@ -33,25 +33,25 @@ func printMetadata(p *Player, s *Settings) {
 	file, _ := os.Open(p.getCurrentMusic().path)
 	defer file.Close()
 	var err error
-	p.metadata, err = readMusicMetadata(file)
+	metadata, err := readMusicMetadata(file)
 	if err != nil {
 		fmt.Printf("[WARNING]: Could not load the music meta tag of %v\n%v\n", p.getCurrentMusic().path, err)
 	} else {
-		printMusicImage(p, s.imageChar)
-		printMusicDetails(p)
+		printMusicImage(metadata, s.imageChar)
+		printMusicMetadata(metadata)
 	}
 }
 
-func printMusicImage(p *Player, char string) {
+func printMusicImage(m tag.Metadata, c string) {
 	defer checkImage()
-	data := p.metadata.Picture().Data
+	data := m.Picture().Data
 	reader := bytes.NewReader(data)
 	image, _, err := image.Decode(reader)
 	if err != nil {
 		log.Println("[WARNING]: Could not decode the music image.")
 		return
 	}
-	printImage(image, char)
+	printImage(image, c)
 }
 
 func checkImage() {
@@ -88,48 +88,29 @@ func printImage(img image.Image, char string) {
 	}
 }
 
-func printMusicDetails(p *Player) {
-	printCenter(p.metadata.Title())
-	printCenter(p.metadata.Artist())
-	printCenter(strconv.Itoa(p.metadata.Year()))
-	printCenter(p.metadata.Genre())
+func printMusicMetadata(m tag.Metadata) {
+	printCenter(m.Title())
+	printCenter(m.Artist())
+	printCenter(strconv.Itoa(m.Year()))
+	printCenter(m.Genre())
 }
 
-func printDuration(p *Player, s *Settings) chan struct{} {
-	printCenter(fmt.Sprintf("[%d:%02d]", p.duration/60, p.duration%60))
-	width, _, err := getTerminalSize()
-	if err != nil {
-		fmt.Printf("[WARNING]: Could not get the width of terminal, therefore cannot show the music progress bar. %v\n", err)
-		return nil
-	}
-	interval := p.duration * 1000 / width
-	quit := make(chan struct{})
-	go func() {
-		ticker := time.NewTicker(time.Duration(interval) * time.Millisecond)
-		for {
-			select {
-			case <-ticker.C:
-				if p.player.IsPlaying() {
-					fmt.Print(s.progressbarChar)
-				}
-			case <-quit:
-				fmt.Print("\n")
-				return
-			}
-		}
-	}()
-	return quit
+func printDuration(p *Player) {
+	minutes := int(p.duration.Seconds()) / 60
+	seconds := int(p.duration.Seconds()) % 60
+	duratoin := fmt.Sprintf("[%d:%02d]", minutes, seconds)
+	printCenter(duratoin)
 }
 
 func printCenter(text string) {
 	text = strings.TrimSpace(text)
-	if text == "" || text == "0" {
+	if text == "" {
 		return
 	}
 	width, _, _ := getTerminalSize()
 	length := runewidth.StringWidth(text)
 	for i := 0; i < (width-length)/2; i++ {
-		fmt.Printf(" ")
+		fmt.Print(" ")
 	}
 	fmt.Println(text)
 }

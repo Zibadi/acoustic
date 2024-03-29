@@ -50,17 +50,17 @@ func readMusicMetadata(file *os.File) (tag.Metadata, error) {
 	return metadata, nil
 }
 
-func getMusicDuration(s *mp3.Stream) int {
+func getMusicDuration(s *mp3.Stream) time.Duration {
 	const sampleRate = 44100
 	const sampleSize = 4
 	samples := s.Length() / sampleSize
 	duration := int(samples / int64(sampleRate))
-	return duration
+	return time.Duration(duration * int(time.Second))
 }
 
 func getMusicTimeout(p *Player) time.Duration {
 	if p.isPaused {
 		return time.Duration(24*365) * time.Hour
 	}
-	return time.Duration(p.duration)*time.Second - p.player.Position()
+	return p.duration - p.player.Position()
 }

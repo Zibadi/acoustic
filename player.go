@@ -8,22 +8,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhowden/tag"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 type Player struct {
-	index           int
-	volume          float64
-	duration        int
-	isPaused        bool
-	isGoingForward  bool
-	isFinished      chan bool
-	metadata        tag.Metadata
-	autoPauseTicker *time.Ticker
-	musics          []Music
-	context         *audio.Context
-	player          *audio.Player
+	index             int
+	volume            float64
+	duration          time.Duration
+	isPaused          bool
+	isGoingForward    bool
+	isFinished        chan bool
+	autoPauseTicker   *time.Ticker
+	progressbarTicker *time.Ticker
+	musics            []Music
+	context           *audio.Context
+	player            *audio.Player
 }
 
 func newPlayer(s *Settings) Player {
@@ -46,6 +45,12 @@ func newContext() *audio.Context {
 	return context
 }
 
+func newProgressbarTicker(p *Player) *time.Ticker {
+	width, _, _ := getTerminalSize()
+	interval := p.duration.Milliseconds() / int64(width)
+	return time.NewTicker(time.Duration(interval * int64(time.Millisecond)))
+}
+
 func (p *Player) play(s *Settings) error {
 	music, err := p.preparePlayer()
 	if err != nil {
@@ -53,20 +58,23 @@ func (p *Player) play(s *Settings) error {
 	}
 	defer music.Close()
 	printMetadata(p, s)
-	quit := printDuration(p, s)
-	defer close(quit)
+	printDuration(p)
 	p.player.Play()
 	defer p.player.Close()
-	p.listen()
+	p.listen(s)
 	return nil
 }
 
-func (p *Player) listen() {
+func (p *Player) listen(s *Settings) {
 	for {
 		timeout := getMusicTimeout(p)
 		select {
 		case <-p.isFinished:
 			return
+		case <-p.progressbarTicker.C:
+			if p.player.IsPlaying() {
+				fmt.Print(s.progressbarChar)
+			}
 		case <-p.autoPauseTicker.C:
 			p.autoPause()
 		case <-time.After(timeout):
@@ -94,6 +102,7 @@ func (p *Player) preparePlayer() (*os.File, error) {
 		return file, err
 	}
 	p.duration = getMusicDuration(stream)
+	p.progressbarTicker = newProgressbarTicker(p)
 	return file, nil
 }
 
@@ -146,7 +155,7 @@ func (p *Player) decreaseVolume() {
 
 func (p *Player) seekForward() {
 	newPosition := p.player.Position() + (time.Second * 5)
-	if int(newPosition.Seconds()) < p.duration {
+	if newPosition < p.duration {
 		p.player.SetPosition(newPosition)
 	}
 }
