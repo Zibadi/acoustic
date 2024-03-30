@@ -246,6 +246,9 @@ func (p *Player) moveToColdDir() {
 }
 
 func (p *Player) toggleIsCool() {
+	if !p.isCoolColdEnabled {
+		return
+	}
 	music := p.getCurrentMusic()
 	parts := strings.Split(music.path, "/")
 	fileName := parts[len(parts)-1]
