@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"os/exec"
@@ -21,6 +22,7 @@ type Player struct {
 	isPaused          bool
 	isGoingForward    bool
 	isFinished        chan bool
+	isCoolColdEnabled bool
 	autoPauseTicker   *time.Ticker
 	progressbarTicker *time.Ticker
 	musics            []Music
@@ -30,16 +32,17 @@ type Player struct {
 
 func newPlayer(s *Settings) Player {
 	player := Player{
-		index:           0,
-		volume:          1.0,
-		imageChar:       s.imageChar,
-		progressbarChar: s.progressbarChar,
-		isPaused:        false,
-		isGoingForward:  true,
-		isFinished:      make(chan bool, 1),
-		autoPauseTicker: time.NewTicker(time.Duration(1) * time.Second),
-		musics:          loadMusics(s),
-		context:         newContext(),
+		index:             0,
+		volume:            1.0,
+		imageChar:         s.imageChar,
+		progressbarChar:   s.progressbarChar,
+		isPaused:          false,
+		isGoingForward:    true,
+		isFinished:        make(chan bool, 1),
+		isCoolColdEnabled: s.isCoolColdEnabled,
+		autoPauseTicker:   time.NewTicker(time.Duration(1) * time.Second),
+		musics:            loadMusics(s),
+		context:           newContext(),
 	}
 	return player
 }
@@ -69,6 +72,7 @@ func (p *Player) play() error {
 	defer music.Close()
 	printMetadata(p)
 	printDuration(p)
+	printCoolTag(p)
 	p.player.Play()
 	defer p.dispose()
 	p.listen()
@@ -80,7 +84,7 @@ func (p *Player) listen() {
 		timeout := getMusicTimeout(p)
 		select {
 		case <-p.isFinished:
-			fmt.Println()
+			p.finished()
 			return
 		case <-p.progressbarTicker.C:
 			printProgressbar(p)
@@ -95,6 +99,10 @@ func (p *Player) listen() {
 func (p *Player) dispose() {
 	p.player.Close()
 	p.progressbarTicker.Stop()
+}
+
+func (p *Player) finished() {
+	fmt.Println()
 }
 
 func (p *Player) preparePlayer() (*os.File, error) {
@@ -124,18 +132,24 @@ func (p *Player) setupPlayerConfigs(s *mp3.Stream) {
 	p.progressbarTicker = newProgressbarTicker(p)
 }
 
-func (p *Player) getCurrentMusic() Music {
+func (p *Player) getCurrentMusic() *Music {
 	p.index %= len(p.musics)
-	return p.musics[p.index]
+	return &p.musics[p.index]
 }
 
 func (p *Player) nextMusic() {
+	if p.isCoolColdEnabled {
+		p.moveToColdDir()
+	}
 	p.index++
 	p.isGoingForward = true
 	p.isFinished <- true
 }
 
 func (p *Player) previousMusic() {
+	if p.isCoolColdEnabled {
+		p.moveToColdDir()
+	}
 	p.index--
 	if p.index < 0 {
 		p.index = len(p.musics) - 1
@@ -211,4 +225,75 @@ func getRunningAudioCount() (int, error) {
 		return 0, err
 	}
 	return strings.Count(string(output), "running"), nil
+}
+
+func (p *Player) moveToColdDir() {
+	music := p.getCurrentMusic()
+	if music.isCool {
+		return
+	}
+	parts := strings.Split(music.path, "/")
+	fileName := parts[len(parts)-1]
+	newPath := "./cold/" + fileName
+	if music.path == newPath {
+		return
+	}
+	err := moveFile(music.path, newPath)
+	if err != nil {
+		return
+	}
+	music.path = newPath
+}
+
+func (p *Player) toggleIsCool() {
+	music := p.getCurrentMusic()
+	parts := strings.Split(music.path, "/")
+	fileName := parts[len(parts)-1]
+	var newPath string
+	if music.isCool {
+		newPath = "./cold/" + fileName
+		music.isCool = false
+		removeCoolTag()
+	} else {
+		newPath = "./COOL/" + fileName
+		music.isCool = true
+		addCoolTag()
+	}
+	err := moveFile(music.path, newPath)
+	if err != nil {
+		return
+	}
+	music.path = newPath
+	updateProgressBar(p)
+}
+
+func moveFile(sourcePath, destPath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not open source file: %v", err)
+		return err
+	}
+	defer inputFile.Close()
+
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not open dest file: %v", err)
+		return err
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, inputFile)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not copy to dest from source: %v", err)
+		return err
+	}
+
+	inputFile.Close() // for Windows, close before trying to remove: https://stackoverflow.com/a/64943554/246801
+
+	err = os.Remove(sourcePath)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not remove source file: %v", err)
+		return err
+	}
+	return nil
 }

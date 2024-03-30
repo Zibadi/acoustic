@@ -34,4 +34,3 @@ During playing the music, you can control the player. Press these keyboard keys 
 # Roadmap
 - Create terminal command
 - Add keyboard key settings
-- Add Cool/Cold feature

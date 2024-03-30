@@ -101,6 +101,29 @@ func printDuration(p *Player) {
 	printCenter(duratoin)
 }
 
+func printCoolTag(p *Player) {
+	music := p.getCurrentMusic()
+	if music.isCool {
+		printCenter("[COOL]:😎👍")
+	} else {
+		fmt.Println()
+	}
+}
+
+func addCoolTag() {
+	cursor.Up(1)
+	cursor.ClearLine()
+	cursor.StartOfLine()
+	printCenter("[COOL]:😎👍")
+	cursor.Down(1)
+}
+
+func removeCoolTag() {
+	cursor.Up(1)
+	cursor.ClearLine()
+	cursor.Down(1)
+}
+
 func printProgressbar(p *Player) {
 	if !p.isPaused {
 		fmt.Print(p.progressbarChar)
