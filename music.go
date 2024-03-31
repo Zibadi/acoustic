@@ -32,6 +32,10 @@ func loadMusics(settings *Settings) []Music {
 		fmt.Printf("[ERROR]: Could not load the musics from %v\n%v\n", settings.dir, err)
 		os.Exit(0)
 	}
+	if len(musics) == 0 {
+		fmt.Println("[ERROR]: The specified directory has no any music to play.")
+		os.Exit(0)
+	}
 	return musics
 }
 

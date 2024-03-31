@@ -64,6 +64,7 @@ func (p *Player) play() error {
 	defer music.Close()
 	printMetadata(p)
 	printDuration(p)
+	printStatusSpace()
 	printStatus(p)
 	p.player.Play()
 	defer p.dispose()

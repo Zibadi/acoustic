@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -55,7 +56,7 @@ func printMusicImage(m tag.Metadata, c string) {
 
 func checkImage() {
 	if r := recover(); r != nil {
-		printCenter("[NO IMAGE]")
+		printlnCenter("[NO IMAGE]")
 	}
 }
 
@@ -88,18 +89,18 @@ func printImage(img image.Image, char string) {
 }
 
 func printMusicMetadata(m tag.Metadata) {
-	printCenter(m.Title())
-	printCenter(m.Artist())
-	printCenter(strconv.Itoa(m.Year()))
-	printCenter(m.Genre())
+	printlnCenter(m.Title())
+	printlnCenter(m.Artist())
+	printlnCenter(m.Genre())
+	printlnCenter(strconv.Itoa(m.Year()))
 }
 
 func printStatus(p *Player) {
 	moveCursorToTagsLine()
 	status := ""
 	status += getCoolTag(p)
-	status += getPuaseTag(p.status.isPaused)
 	status += getShuffleTag(p.status.isShuffled)
+	status += getPuaseTag(p.status.isPaused)
 	printCenter(status)
 	moveCursorToProgressbarLine()
 	updateProgressBar(p)
@@ -115,7 +116,11 @@ func printDuration(p *Player) {
 	minutes := int(p.duration.Seconds()) / 60
 	seconds := int(p.duration.Seconds()) % 60
 	duratoin := fmt.Sprintf("[%d:%02d]", minutes, seconds)
-	printCenter(duratoin)
+	printlnCenter(duratoin)
+}
+
+func printStatusSpace() {
+	fmt.Println()
 }
 
 func getCoolTag(p *Player) string {
@@ -165,16 +170,32 @@ func updateProgressBar(p *Player) {
 }
 
 func printCenter(text string) {
-	text = strings.TrimSpace(text)
-	if text == "" {
+	err := centerizeCursor(text)
+	if err != nil {
 		return
+	}
+	fmt.Print(text)
+}
+
+func printlnCenter(text string) {
+	err := centerizeCursor(text)
+	if err != nil {
+		return
+	}
+	fmt.Println(text)
+}
+
+func centerizeCursor(text string) error {
+	text = strings.TrimSpace(text)
+	if text == "" || text == "0" {
+		return errors.New("input text is empty")
 	}
 	width, _, _ := getTerminalSize()
 	length := runewidth.StringWidth(text)
 	for i := 0; i < (width-length)/2; i++ {
 		fmt.Print(" ")
 	}
-	fmt.Println(text)
+	return nil
 }
 
 func getTerminalSize() (int, int, error) {
