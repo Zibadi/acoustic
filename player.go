@@ -234,8 +234,9 @@ func (p *Player) moveToColdDir() {
 	if music.isCool {
 		return
 	}
-	dir, fileName := filepath.Split(music.path)
-	newPath := filepath.Join(dir, "cold", fileName)
+	fileName := filepath.Base(music.path)
+	baseDir := filepath.Dir(p.settings.dir)
+	newPath := filepath.Join(baseDir, "cold", fileName)
 	if music.path == newPath {
 		return
 	}
@@ -251,13 +252,14 @@ func (p *Player) toggleIsCool() {
 		return
 	}
 	music := p.getCurrentMusic()
-	dir, fileName := filepath.Split(music.path)
+	fileName := filepath.Base(music.path)
+	baseDir := filepath.Dir(p.settings.dir)
 	var newPath string
 	if music.isCool {
-		newPath = filepath.Join(dir, "cold", fileName)
+		newPath = filepath.Join(baseDir, "cold", fileName)
 		music.isCool = false
 	} else {
-		newPath = filepath.Join(dir, "COOL", fileName)
+		newPath = filepath.Join(baseDir, "COOL", fileName)
 		music.isCool = true
 	}
 	err := moveFile(music.path, newPath)

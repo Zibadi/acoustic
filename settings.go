@@ -42,9 +42,16 @@ func getSettings() Settings {
 }
 
 func initSettings(s Settings) {
+	var err error
+	s.dir, err = filepath.Abs(s.dir)
+	if err != nil {
+		fmt.Printf("[ERROR]: Could not get the absolute path.\n%v\n", err)
+		os.Exit(0)
+	}
 	if s.isCoolColdEnabled {
-		err := os.MkdirAll(filepath.Join(s.dir, "COOL"), os.ModePerm)
-		_ = os.MkdirAll(filepath.Join(s.dir, "cold"), os.ModePerm)
+		baseDir := filepath.Dir(s.dir)
+		err = os.MkdirAll(filepath.Join(baseDir, "COOL"), os.ModePerm)
+		_ = os.MkdirAll(filepath.Join(baseDir, "cold"), os.ModePerm)
 		if err != nil {
 			fmt.Printf("[ERROR]: Could not create COOL and cold direcotries.\n%v\n", err)
 			os.Exit(0)
