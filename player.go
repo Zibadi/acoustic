@@ -204,7 +204,7 @@ func (p *Player) seekBackward() {
 }
 
 func (p *Player) shuffle() {
-	p.musics = shuffle(p.musics)
+	p.musics, p.index = shuffle(p.musics, p.index)
 	p.status.isShuffled = true
 	printStatus(p)
 }
