@@ -81,6 +81,7 @@ func (p *Player) listen() {
 			return
 		case <-p.progressbarTicker.C:
 			printProgressbar(p)
+			printStatus(p)
 		case <-p.autoPauseTicker.C:
 			p.autoPause()
 		case <-time.After(timeout):
@@ -172,13 +173,15 @@ func (p *Player) togglePauseOrPlay() {
 }
 
 func (p *Player) increaseVolume() {
-	p.volume = math.Min(2, p.volume+0.2)
+	p.volume = math.Min(2.0, p.volume+0.1)
 	p.player.SetVolume(p.volume)
+	printVolume(p)
 }
 
 func (p *Player) decreaseVolume() {
-	p.volume = math.Max(0, p.volume-0.2)
+	p.volume = math.Max(0, p.volume-0.1)
 	p.player.SetVolume(p.volume)
+	printVolume(p)
 }
 
 func (p *Player) seekForward() {

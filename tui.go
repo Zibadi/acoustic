@@ -95,6 +95,10 @@ func printMusicMetadata(m tag.Metadata) {
 	printlnCenter(strconv.Itoa(m.Year()))
 }
 
+func printStatusSpace() {
+	fmt.Println()
+}
+
 func printStatus(p *Player) {
 	moveCursorToTagsLine()
 	status := ""
@@ -106,7 +110,25 @@ func printStatus(p *Player) {
 	updateProgressBar(p)
 }
 
+func printVolume(p *Player) {
+	moveCursorToTagsLine()
+	content := "["
+	maxVolume := 2.0
+	for i := 0.0; i < maxVolume; i += 0.1 {
+		if i < p.volume {
+			content += "❚"
+		} else {
+			content += " "
+		}
+	}
+	content += "]"
+	printCenter(content)
+	moveCursorToProgressbarLine()
+	updateProgressBar(p)
+}
+
 func moveCursorToTagsLine() {
+	cursor.Hide()
 	cursor.Up(1)
 	cursor.ClearLine()
 	cursor.StartOfLine()
@@ -117,10 +139,6 @@ func printDuration(p *Player) {
 	seconds := int(p.duration.Seconds()) % 60
 	duratoin := fmt.Sprintf("[%d:%02d]", minutes, seconds)
 	printlnCenter(duratoin)
-}
-
-func printStatusSpace() {
-	fmt.Println()
 }
 
 func getCoolTag(p *Player) string {
