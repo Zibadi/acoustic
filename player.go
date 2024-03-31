@@ -17,12 +17,8 @@ type Player struct {
 	index             int
 	volume            float64
 	duration          time.Duration
-	imageChar         string
-	progressbarChar   string
-	isPaused          bool
-	isGoingForward    bool
-	isFinished        chan bool
-	isCoolColdEnabled bool
+	settings          *Settings
+	status            *Status
 	autoPauseTicker   *time.Ticker
 	progressbarTicker *time.Ticker
 	musics            []Music
@@ -32,17 +28,13 @@ type Player struct {
 
 func newPlayer(s *Settings) Player {
 	player := Player{
-		index:             0,
-		volume:            1.0,
-		imageChar:         s.imageChar,
-		progressbarChar:   s.progressbarChar,
-		isPaused:          false,
-		isGoingForward:    true,
-		isFinished:        make(chan bool, 1),
-		isCoolColdEnabled: s.isCoolColdEnabled,
-		autoPauseTicker:   time.NewTicker(time.Duration(1) * time.Second),
-		musics:            loadMusics(s),
-		context:           newContext(),
+		index:           0,
+		volume:          1.0,
+		settings:        s,
+		status:          newStatus(),
+		autoPauseTicker: time.NewTicker(time.Duration(1) * time.Second),
+		musics:          loadMusics(s),
+		context:         newContext(),
 	}
 	return player
 }
@@ -55,13 +47,13 @@ func newContext() *audio.Context {
 
 func newProgressbarTicker(p *Player) *time.Ticker {
 	interval := getProgressbarInterval(p)
-	return time.NewTicker(time.Duration(interval * int64(time.Millisecond)))
+	return time.NewTicker(interval)
 }
 
-func getProgressbarInterval(p *Player) int64 {
+func getProgressbarInterval(p *Player) time.Duration {
 	width, _, _ := getTerminalSize()
 	interval := p.duration.Milliseconds() / int64(width)
-	return interval
+	return time.Duration(interval * int64(time.Millisecond))
 }
 
 func (p *Player) play() error {
@@ -72,7 +64,7 @@ func (p *Player) play() error {
 	defer music.Close()
 	printMetadata(p)
 	printDuration(p)
-	printCoolTag(p)
+	printStatus(p)
 	p.player.Play()
 	defer p.dispose()
 	p.listen()
@@ -83,7 +75,7 @@ func (p *Player) listen() {
 	for {
 		timeout := getMusicTimeout(p)
 		select {
-		case <-p.isFinished:
+		case <-p.status.isFinished:
 			p.finished()
 			return
 		case <-p.progressbarTicker.C:
@@ -131,6 +123,7 @@ func (p *Player) setupPlayerConfigs(s *mp3.Stream) {
 	p.player.SetVolume(p.volume)
 	p.duration = getMusicDuration(s)
 	p.progressbarTicker = newProgressbarTicker(p)
+	p.status = newStatus()
 }
 
 func (p *Player) getCurrentMusic() *Music {
@@ -139,41 +132,42 @@ func (p *Player) getCurrentMusic() *Music {
 }
 
 func (p *Player) nextMusic() {
-	if p.isCoolColdEnabled {
+	if p.settings.isCoolColdEnabled {
 		p.moveToColdDir()
 	}
 	p.index++
-	p.isGoingForward = true
-	p.isFinished <- true
+	p.status.isGoingForward = true
+	p.status.isFinished <- true
 }
 
 func (p *Player) previousMusic() {
-	if p.isCoolColdEnabled {
+	if p.settings.isCoolColdEnabled {
 		p.moveToColdDir()
 	}
 	p.index--
 	if p.index < 0 {
 		p.index = len(p.musics) - 1
 	}
-	p.isGoingForward = false
-	p.isFinished <- true
+	p.status.isGoingForward = false
+	p.status.isFinished <- true
 }
 
 func (p *Player) skipMusic() {
 	p.musics[p.index] = p.musics[len(p.musics)-1]
-	if !p.isGoingForward {
+	if !p.status.isGoingForward {
 		p.previousMusic()
 	}
 	p.musics = p.musics[:len(p.musics)-1]
 }
 
 func (p *Player) togglePauseOrPlay() {
-	if !p.isPaused {
+	if !p.status.isPaused {
 		p.player.Pause()
 	} else {
 		p.player.Play()
 	}
-	p.isPaused = !p.isPaused
+	p.status.isPaused = !p.status.isPaused
+	printStatus(p)
 }
 
 func (p *Player) increaseVolume() {
@@ -206,6 +200,8 @@ func (p *Player) seekBackward() {
 
 func (p *Player) shuffle() {
 	p.musics = shuffle(p.musics)
+	p.status.isShuffled = true
+	printStatus(p)
 }
 
 func (p *Player) autoPause() {
@@ -214,7 +210,7 @@ func (p *Player) autoPause() {
 		p.autoPauseTicker.Stop()
 		return
 	}
-	if (count > 2 && !p.isPaused) || (count <= 2 && p.isPaused) {
+	if (count > 2 && !p.status.isPaused) || (count <= 2 && p.status.isPaused) {
 		p.togglePauseOrPlay()
 	}
 }
@@ -247,7 +243,7 @@ func (p *Player) moveToColdDir() {
 }
 
 func (p *Player) toggleIsCool() {
-	if !p.isCoolColdEnabled {
+	if !p.settings.isCoolColdEnabled {
 		return
 	}
 	music := p.getCurrentMusic()
@@ -257,18 +253,16 @@ func (p *Player) toggleIsCool() {
 	if music.isCool {
 		newPath = "./cold/" + fileName
 		music.isCool = false
-		removeCoolTag()
 	} else {
 		newPath = "./COOL/" + fileName
 		music.isCool = true
-		addCoolTag()
 	}
 	err := moveFile(music.path, newPath)
 	if err != nil {
 		return
 	}
 	music.path = newPath
-	updateProgressBar(p)
+	printStatus(p)
 }
 
 func moveFile(sourcePath, destPath string) error {

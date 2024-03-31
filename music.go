@@ -60,7 +60,7 @@ func getMusicDuration(s *mp3.Stream) time.Duration {
 }
 
 func getMusicTimeout(p *Player) time.Duration {
-	if p.isPaused {
+	if p.status.isPaused {
 		return time.Duration(24*365) * time.Hour
 	}
 	return p.duration - p.player.Position()

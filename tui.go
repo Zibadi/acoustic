@@ -36,7 +36,7 @@ func printMetadata(p *Player) {
 	if err != nil {
 		fmt.Printf("[WARNING]: Could not load the music metadata of %v\n%v\n", p.getCurrentMusic().path, err)
 	} else {
-		printMusicImage(metadata, p.imageChar)
+		printMusicImage(metadata, p.settings.imageChar)
 		printMusicMetadata(metadata)
 	}
 }
@@ -94,6 +94,23 @@ func printMusicMetadata(m tag.Metadata) {
 	printCenter(m.Genre())
 }
 
+func printStatus(p *Player) {
+	moveCursorToTagsLine()
+	status := ""
+	status += getCoolTag(p)
+	status += getPuaseTag(p.status.isPaused)
+	status += getShuffleTag(p.status.isShuffled)
+	printCenter(status)
+	moveCursorToProgressbarLine()
+	updateProgressBar(p)
+}
+
+func moveCursorToTagsLine() {
+	cursor.Up(1)
+	cursor.ClearLine()
+	cursor.StartOfLine()
+}
+
 func printDuration(p *Player) {
 	minutes := int(p.duration.Seconds()) / 60
 	seconds := int(p.duration.Seconds()) % 60
@@ -101,44 +118,47 @@ func printDuration(p *Player) {
 	printCenter(duratoin)
 }
 
-func printCoolTag(p *Player) {
+func getCoolTag(p *Player) string {
 	music := p.getCurrentMusic()
 	if music.isCool {
-		printCenter("[COOL]:😎👍")
-	} else {
-		fmt.Println()
+		return "[COOL]"
 	}
+	return ""
 }
 
-func addCoolTag() {
-	cursor.Up(1)
-	cursor.ClearLine()
-	cursor.StartOfLine()
-	printCenter("[COOL]:😎👍")
-	cursor.Down(1)
+func getPuaseTag(isPaused bool) string {
+	if isPaused {
+		return "[PUASE]"
+	}
+	return ""
 }
 
-func removeCoolTag() {
-	cursor.Up(1)
-	cursor.ClearLine()
+func getShuffleTag(isShuffled bool) string {
+	if isShuffled {
+		return "[SHUFFLE]"
+	}
+	return ""
+}
+
+func moveCursorToProgressbarLine() {
 	cursor.Down(1)
 }
 
 func printProgressbar(p *Player) {
-	if !p.isPaused {
-		fmt.Print(p.progressbarChar)
+	if !p.status.isPaused {
+		fmt.Print(p.settings.progressbarChar)
 	}
 }
 
 func updateProgressBar(p *Player) {
-	interval := getProgressbarInterval(p)
+	interval := getProgressbarInterval(p).Milliseconds()
 	cursor.Hide()
 	area := cursor.NewArea()
 	area.ClearLinesDown(0)
 	bound := p.player.Position().Milliseconds()
 	content := ""
 	for i := 0; i < int(bound/interval); i++ {
-		content += p.progressbarChar
+		content += p.settings.progressbarChar
 	}
 	area.Update(content)
 	cursor.Show()
