@@ -18,8 +18,8 @@ type Player struct {
 	index             int
 	volume            float64
 	duration          time.Duration
+	status            Status
 	settings          *Settings
-	status            *Status
 	autoPauseTicker   *time.Ticker
 	progressbarTicker *time.Ticker
 	musics            []Music

@@ -7,8 +7,8 @@ type Status struct {
 	isFinished     chan bool
 }
 
-func newStatus() *Status {
-	return &Status{
+func newStatus() Status {
+	return Status{
 		isPaused:       false,
 		isShuffled:     false,
 		isGoingForward: true,
