@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -233,9 +234,8 @@ func (p *Player) moveToColdDir() {
 	if music.isCool {
 		return
 	}
-	parts := strings.Split(music.path, "/")
-	fileName := parts[len(parts)-1]
-	newPath := "./cold/" + fileName
+	dir, fileName := filepath.Split(music.path)
+	newPath := filepath.Join(dir, "cold", fileName)
 	if music.path == newPath {
 		return
 	}
@@ -251,14 +251,13 @@ func (p *Player) toggleIsCool() {
 		return
 	}
 	music := p.getCurrentMusic()
-	parts := strings.Split(music.path, "/")
-	fileName := parts[len(parts)-1]
+	dir, fileName := filepath.Split(music.path)
 	var newPath string
 	if music.isCool {
-		newPath = "./cold/" + fileName
+		newPath = filepath.Join(dir, "cold", fileName)
 		music.isCool = false
 	} else {
-		newPath = "./COOL/" + fileName
+		newPath = filepath.Join(dir, "COOL", fileName)
 		music.isCool = true
 	}
 	err := moveFile(music.path, newPath)

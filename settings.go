@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type Settings struct {
@@ -42,8 +43,8 @@ func getSettings() Settings {
 
 func initSettings(s Settings) {
 	if s.isCoolColdEnabled {
-		err := os.MkdirAll("COOL", os.ModePerm)
-		_ = os.MkdirAll("cold", os.ModePerm)
+		err := os.MkdirAll(filepath.Join(s.dir, "COOL"), os.ModePerm)
+		_ = os.MkdirAll(filepath.Join(s.dir, "cold"), os.ModePerm)
 		if err != nil {
 			fmt.Printf("[ERROR]: Could not create COOL and cold direcotries.\n%v\n", err)
 			os.Exit(0)
