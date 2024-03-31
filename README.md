@@ -36,4 +36,5 @@ During playing the music, you can control the player. Press these keyboard keys 
 | q           | Exit the program                            |
 
 # Roadmap
-- Create terminal command
+- Add repeat control option
+- Create terminal command for Linux, Mac and Windows
