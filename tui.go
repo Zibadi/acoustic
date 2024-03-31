@@ -137,7 +137,7 @@ func moveCursorToTagsLine() {
 func printDuration(p *Player) {
 	minutes := int(p.duration.Seconds()) / 60
 	seconds := int(p.duration.Seconds()) % 60
-	duratoin := fmt.Sprintf("[%d:%02d]", minutes, seconds)
+	duratoin := fmt.Sprintf("%d:%02d", minutes, seconds)
 	printlnCenter(duratoin)
 }
 
