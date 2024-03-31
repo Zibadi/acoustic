@@ -97,6 +97,7 @@ func (p *Player) listen() {
 }
 
 func (p *Player) dispose() {
+	p.player.Pause()
 	p.player.Close()
 	p.progressbarTicker.Stop()
 }
