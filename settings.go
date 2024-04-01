@@ -29,9 +29,9 @@ func checkArgs(args []string) {
 }
 
 func getSettings() Settings {
-	imageChar := flag.String("imageChar", "▄", "Set the character used to display the image.")
-	progressbarChar := flag.String("progressbarChar", "─", "Set the character used to display the progress bar.")
-	isHotColdEnabled := flag.Bool("hotCold", false, "Set this option to true to seperate Hot music from Cold ones.")
+	imageChar := flag.String("image-char", "▄", "Set the character used to display the image.")
+	progressbarChar := flag.String("progressbar-char", "─", "Set the character used to display the progress bar.")
+	isHotColdEnabled := flag.Bool("hot-cold", false, "Set this option to true to seperate Hot music from Cold ones.")
 	flag.Parse()
 	return Settings{
 		dir:              flag.Arg(0),
