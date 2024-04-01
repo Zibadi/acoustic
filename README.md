@@ -32,7 +32,7 @@ During playing the music, you can control the player. Press these keyboard keys 
 | RightArrow  | Seek forward                                |
 | LeftArrow   | Seek backward                               |
 | s           | Shuffle the play list                       |
-| c           | Toggle Hot tag (if it is enabled)          |
+| h           | Toggle Hot tag (if it is enabled)          |
 | q           | Exit the program                            |
 
 # Roadmap

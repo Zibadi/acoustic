@@ -26,7 +26,7 @@ func handleRuneKeys(key *keys.Key, p *Player) {
 		p.previousMusic()
 	case "s":
 		p.shuffle()
-	case "c":
+	case "h":
 		p.toggleIsHot()
 	case "q":
 		os.Exit(0)
