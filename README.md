@@ -17,7 +17,7 @@ You can change the default characters that are used to print the music image and
 If you open a video or another audio file on your computer while the music is playing, the program will automatically pause the music. After the external audio gets finished, the music will continue to play. This option is enabled by default; however, to disable it, simply hit space.
 
 # Hot/Cold
-If you enable this option by passing `-hotCold='true'` in your command, the program creates two directories. The first directory will have your `Hot` music, followed by the `Cold` directory, which will contain your Cold music. During playback, you can press `h` to indicate a song as Hot, and the program will automatically move the song to the Hot directory. If you do not mark a music file as Hot, it will be moved to the Cold directory. This tool is useful when you have a collection of new music and want to find Hot music among them.
+If you enable this option by passing `-hotCold='true'` in your command, the program creates two directories. The first directory will have your `Hot` music, followed by the `Cold` directory, which will contain your Cold music. During playback, you can press `h` to indicate a song as `🔥[HOT!]🔥` the program will automatically move the song to the Hot directory. If you do not mark a music file as Hot, it will be moved to the Cold directory. This tool is useful when you have a collection of new music and want to find Hot music among them.
 
 # Playback Controls
 During playing the music, you can control the player. Press these keyboard keys to control the player:
