@@ -27,7 +27,7 @@ func handleRuneKeys(key *keys.Key, p *Player) {
 	case "s":
 		p.shuffle()
 	case "c":
-		p.toggleIsCool()
+		p.toggleIsHot()
 	case "q":
 		os.Exit(0)
 	}

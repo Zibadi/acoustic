@@ -16,8 +16,8 @@ You can change the default characters that are used to print the music image and
 # Auto-Pause
 If you open a video or another audio file on your computer while the music is playing, the program will automatically pause the music. After the external audio gets finished, the music will continue to play. This option is enabled by default; however, to disable it, simply hit space.
 
-# COOL/cold
-If you enable this option by passing `-coolCold='true'` in your command, the program creates two directories. The first directory will have your `COOL` music, followed by the `cold` directory, which will contain your cold music. During playback, you can press `c` to indicate a song as COOL, and the program will automatically move the song to the COOL directory. If you do not mark a music file as COOL, it will be moved to the cold directory. This tool is useful when you have a collection of new music and want to find COOL music among them.
+# Hot/Cold
+If you enable this option by passing `-hotCold='true'` in your command, the program creates two directories. The first directory will have your `Hot` music, followed by the `Cold` directory, which will contain your Cold music. During playback, you can press `c` to indicate a song as Hot, and the program will automatically move the song to the Hot directory. If you do not mark a music file as Hot, it will be moved to the Cold directory. This tool is useful when you have a collection of new music and want to find Hot music among them.
 
 # Playback Controls
 During playing the music, you can control the player. Press these keyboard keys to control the player:
@@ -32,7 +32,7 @@ During playing the music, you can control the player. Press these keyboard keys 
 | RightArrow  | Seek forward                                |
 | LeftArrow   | Seek backward                               |
 | s           | Shuffle the play list                       |
-| c           | Toggle COOL tag (if it is enabled)          |
+| c           | Toggle Hot tag (if it is enabled)          |
 | q           | Exit the program                            |
 
 # Roadmap

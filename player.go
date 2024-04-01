@@ -135,7 +135,7 @@ func (p *Player) getCurrentMusic() *Music {
 }
 
 func (p *Player) nextMusic() {
-	if p.settings.isCoolColdEnabled {
+	if p.settings.isHotColdEnabled {
 		p.moveToColdDir()
 	}
 	p.index++
@@ -144,7 +144,7 @@ func (p *Player) nextMusic() {
 }
 
 func (p *Player) previousMusic() {
-	if p.settings.isCoolColdEnabled {
+	if p.settings.isHotColdEnabled {
 		p.moveToColdDir()
 	}
 	p.index--
@@ -231,13 +231,13 @@ func getRunningAudioCount() (int, error) {
 
 func (p *Player) moveToColdDir() {
 	music := p.getCurrentMusic()
-	if music.isCool {
+	if music.isHot {
 		return
 	}
 	fileName := filepath.Base(music.path)
 	absolutePath, _ := filepath.Abs(p.settings.dir)
 	baseDir := filepath.Dir(absolutePath)
-	newPath := filepath.Join(baseDir, "cold", fileName)
+	newPath := filepath.Join(baseDir, "Cold", fileName)
 	if music.path == newPath {
 		return
 	}
@@ -248,8 +248,8 @@ func (p *Player) moveToColdDir() {
 	music.path = newPath
 }
 
-func (p *Player) toggleIsCool() {
-	if !p.settings.isCoolColdEnabled {
+func (p *Player) toggleIsHot() {
+	if !p.settings.isHotColdEnabled {
 		return
 	}
 	music := p.getCurrentMusic()
@@ -257,12 +257,12 @@ func (p *Player) toggleIsCool() {
 	absolutePath, _ := filepath.Abs(p.settings.dir)
 	baseDir := filepath.Dir(absolutePath)
 	var newPath string
-	if music.isCool {
-		newPath = filepath.Join(baseDir, "cold", fileName)
-		music.isCool = false
+	if music.isHot {
+		newPath = filepath.Join(baseDir, "Cold", fileName)
+		music.isHot = false
 	} else {
-		newPath = filepath.Join(baseDir, "COOL", fileName)
-		music.isCool = true
+		newPath = filepath.Join(baseDir, "Hot", fileName)
+		music.isHot = true
 	}
 	err := moveFile(music.path, newPath)
 	if err != nil {

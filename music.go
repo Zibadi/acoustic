@@ -12,8 +12,8 @@ import (
 )
 
 type Music struct {
-	path   string
-	isCool bool
+	path  string
+	isHot bool
 }
 
 func loadMusics(settings *Settings) []Music {
@@ -24,7 +24,7 @@ func loadMusics(settings *Settings) []Music {
 			return err
 		}
 		if !d.IsDir() {
-			musics = append(musics, Music{path: path, isCool: false})
+			musics = append(musics, Music{path: path, isHot: false})
 		}
 		return nil
 	})

@@ -8,10 +8,10 @@ import (
 )
 
 type Settings struct {
-	dir               string
-	imageChar         string
-	progressbarChar   string
-	isCoolColdEnabled bool
+	dir              string
+	imageChar        string
+	progressbarChar  string
+	isHotColdEnabled bool
 }
 
 func newSettings(args []string) Settings {
@@ -31,13 +31,13 @@ func checkArgs(args []string) {
 func getSettings() Settings {
 	imageChar := flag.String("imageChar", "▄", "Set the character used to display the image.")
 	progressbarChar := flag.String("progressbarChar", "─", "Set the character used to display the progress bar.")
-	isCoolColdEnabled := flag.Bool("coolCold", false, "Set this option to true to seperate cool musics from cold ones.")
+	isHotColdEnabled := flag.Bool("hotCold", false, "Set this option to true to seperate Hot music from Cold ones.")
 	flag.Parse()
 	return Settings{
-		dir:               flag.Arg(0),
-		imageChar:         *imageChar,
-		progressbarChar:   *progressbarChar,
-		isCoolColdEnabled: *isCoolColdEnabled,
+		dir:              flag.Arg(0),
+		imageChar:        *imageChar,
+		progressbarChar:  *progressbarChar,
+		isHotColdEnabled: *isHotColdEnabled,
 	}
 }
 
@@ -48,12 +48,12 @@ func initSettings(s Settings) {
 		fmt.Printf("[ERROR]: Could not get the absolute path.\n%v\n", err)
 		os.Exit(0)
 	}
-	if s.isCoolColdEnabled {
+	if s.isHotColdEnabled {
 		baseDir := filepath.Dir(s.dir)
-		err = os.MkdirAll(filepath.Join(baseDir, "COOL"), os.ModePerm)
-		_ = os.MkdirAll(filepath.Join(baseDir, "cold"), os.ModePerm)
+		err = os.MkdirAll(filepath.Join(baseDir, "Hot"), os.ModePerm)
+		_ = os.MkdirAll(filepath.Join(baseDir, "Cold"), os.ModePerm)
 		if err != nil {
-			fmt.Printf("[ERROR]: Could not create COOL and cold direcotries.\n%v\n", err)
+			fmt.Printf("[ERROR]: Could not create Hot and Cold direcotries.\n%v\n", err)
 			os.Exit(0)
 		}
 	}

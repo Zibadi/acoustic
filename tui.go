@@ -102,7 +102,7 @@ func printStatusSpace() {
 func printStatus(p *Player) {
 	moveCursorToTagsLine()
 	status := ""
-	status += getCoolTag(p)
+	status += getHotTag(p)
 	status += getShuffleTag(p.status.isShuffled)
 	status += getPuaseTag(p.status.isPaused)
 	printCenter(status)
@@ -141,10 +141,10 @@ func printDuration(p *Player) {
 	printlnCenter(duratoin)
 }
 
-func getCoolTag(p *Player) string {
+func getHotTag(p *Player) string {
 	music := p.getCurrentMusic()
-	if music.isCool {
-		return "[COOL]"
+	if music.isHot {
+		return "🔥[HOT!]🔥"
 	}
 	return ""
 }
