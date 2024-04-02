@@ -160,6 +160,15 @@ func (p *Player) skipMusic() {
 	p.musics = p.musics[:len(p.musics)-1]
 }
 
+func (p *Player) disableAutoPause() {
+	if p.status.isAutoPaused {
+		p.autoPauseTicker.Stop()
+		p.status.isAutoPaused = false
+		p.status.isAutoPauseEnable = false
+	}
+	p.status.isAutoPauseEnable = !p.status.isAutoPauseEnable
+}
+
 func (p *Player) togglePauseOrPlay() {
 	if !p.status.isPaused {
 		p.player.Pause()
@@ -207,12 +216,19 @@ func (p *Player) shuffle() {
 }
 
 func (p *Player) autoPause() {
+	if !p.status.isAutoPauseEnable {
+		return
+	}
 	count, err := getRunningAudioCount()
 	if err != nil {
 		p.autoPauseTicker.Stop()
 		return
 	}
-	if (count > 2 && !p.status.isPaused) || (count <= 2 && p.status.isPaused) {
+	if count > 2 && !p.status.isAutoPaused {
+		p.status.isAutoPaused = true
+		p.togglePauseOrPlay()
+	} else if count <= 2 && p.status.isAutoPaused {
+		p.status.isAutoPaused = false
 		p.togglePauseOrPlay()
 	}
 }

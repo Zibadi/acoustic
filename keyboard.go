@@ -36,7 +36,7 @@ func handleRuneKeys(key *keys.Key, p *Player) {
 func handelOtherKeys(key *keys.Key, p *Player) {
 	switch key.Code {
 	case keys.Space:
-		p.autoPauseTicker.Stop()
+		p.disableAutoPause()
 		p.togglePauseOrPlay()
 	case keys.Up:
 		p.increaseVolume()

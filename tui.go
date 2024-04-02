@@ -104,7 +104,7 @@ func printStatus(p *Player) {
 	status := ""
 	status += getHotTag(p)
 	status += getShuffleTag(p.status.isShuffled)
-	status += getPuaseTag(p.status.isPaused)
+	status += getPuaseTag(p.status.isPaused, p.status.isAutoPaused)
 	printCenter(status)
 	moveCursorToProgressbarLine()
 	updateProgressBar(p)
@@ -149,7 +149,10 @@ func getHotTag(p *Player) string {
 	return ""
 }
 
-func getPuaseTag(isPaused bool) string {
+func getPuaseTag(isPaused bool, isAutoPaused bool) string {
+	if isAutoPaused {
+		return "[AUTO-PAUSE]"
+	}
 	if isPaused {
 		return "[PUASE]"
 	}
