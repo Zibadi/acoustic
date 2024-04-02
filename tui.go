@@ -170,6 +170,17 @@ func moveCursorToProgressbarLine() {
 func printProgressbar(p *Player) {
 	if !p.status.isPaused {
 		fmt.Print(p.settings.progressbarChar)
+		if checkMusicFinished(p) {
+			interval := getProgressbarInterval(p).Milliseconds()
+			bound := p.player.Position().Milliseconds()
+			width, _, _ := getTerminalSize()
+			content := ""
+			for i := 0; i < width-(int(bound/interval)); i++ {
+				content += p.settings.progressbarChar
+			}
+			fmt.Print(content)
+			p.nextMusic()
+		}
 	}
 }
 

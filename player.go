@@ -75,7 +75,6 @@ func (p *Player) play() error {
 
 func (p *Player) listen() {
 	for {
-		timeout := getMusicTimeout(p)
 		select {
 		case <-p.status.isFinished:
 			p.finished()
@@ -85,8 +84,6 @@ func (p *Player) listen() {
 			printStatus(p)
 		case <-p.autoPauseTicker.C:
 			p.autoPause()
-		case <-time.After(timeout):
-			p.nextMusic()
 		}
 	}
 }
