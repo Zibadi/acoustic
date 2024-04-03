@@ -154,14 +154,14 @@ func getPuaseTag(isPaused bool, isAutoPaused bool) string {
 		return "[AUTO-PAUSE]"
 	}
 	if isPaused {
-		return "[PUASE]"
+		return "[PUASED]"
 	}
 	return ""
 }
 
 func getShuffleTag(isShuffled bool) string {
 	if isShuffled {
-		return "[SHUFFLE]"
+		return "[SHUFFLED]"
 	}
 	return ""
 }
